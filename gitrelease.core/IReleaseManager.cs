@@ -2,5 +2,8 @@
 {
     public interface IReleaseManager
     {
+        ReleaseManagerFlags Initialize();
+        
+        ReleaseSequenceFlags Release();
     }
 }

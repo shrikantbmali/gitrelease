@@ -6,7 +6,6 @@ namespace gitrelease
 {
     public class Builder : IBuilder
     {
-        private bool usingConfig;
         private string configFilePath;
 
         private Builder() { }
@@ -18,7 +17,6 @@ namespace gitrelease
 
         public IBuilder UseConfig(string configFilePath)
         {
-            this.usingConfig = true;
             this.configFilePath = configFilePath;
 
             return this;
@@ -28,17 +26,13 @@ namespace gitrelease
         {
             ConfigFile configFile = default;
 
-            if (this.usingConfig && !TryParseFile(out configFile, this.configFilePath))
+            if (!TryParseFile(out configFile, this.configFilePath))
             {
                 return (BuilderFlags.InvalidFile, null);
             }
 
-            return (
-                Flag: BuilderFlags.Ok,
-                ReleaseManager: this.usingConfig
-                    ? new ReleaseManager(configFile)
-                    : new ReleaseManager()
-                );
+            return (Flag: BuilderFlags.Ok,
+                ReleaseManager: new ReleaseManager(configFile));
         }
 
         private static bool TryParseFile(out ConfigFile file, string filePath)

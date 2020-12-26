@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "gitrelease.cli": {
+      "commandName": "Project"
+    }
+  }
+}

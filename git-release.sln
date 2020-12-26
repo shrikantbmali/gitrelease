@@ -3,9 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gitrelease.test", "gitrelease.test\gitrelease.test.csproj", "{6EEC2534-E9BA-4BFC-8F40-A78E3E78F0CE}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gitrelease", "gitrelease\gitrelease.csproj", "{D1FFEB79-7B03-47B4-A62B-4276F10AE449}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gitrelease.core", "gitrelease.core\gitrelease.core.csproj", "{D1FFEB79-7B03-47B4-A62B-4276F10AE449}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gitrelease.cli", "gitrelease.cli\gitrelease.cli.csproj", "{362B71EC-8251-4C43-938F-8FF34E0A7D80}"
 EndProject
@@ -22,18 +20,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6EEC2534-E9BA-4BFC-8F40-A78E3E78F0CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6EEC2534-E9BA-4BFC-8F40-A78E3E78F0CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6EEC2534-E9BA-4BFC-8F40-A78E3E78F0CE}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{6EEC2534-E9BA-4BFC-8F40-A78E3E78F0CE}.Debug|x64.Build.0 = Debug|Any CPU
-		{6EEC2534-E9BA-4BFC-8F40-A78E3E78F0CE}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{6EEC2534-E9BA-4BFC-8F40-A78E3E78F0CE}.Debug|x86.Build.0 = Debug|Any CPU
-		{6EEC2534-E9BA-4BFC-8F40-A78E3E78F0CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6EEC2534-E9BA-4BFC-8F40-A78E3E78F0CE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6EEC2534-E9BA-4BFC-8F40-A78E3E78F0CE}.Release|x64.ActiveCfg = Release|Any CPU
-		{6EEC2534-E9BA-4BFC-8F40-A78E3E78F0CE}.Release|x64.Build.0 = Release|Any CPU
-		{6EEC2534-E9BA-4BFC-8F40-A78E3E78F0CE}.Release|x86.ActiveCfg = Release|Any CPU
-		{6EEC2534-E9BA-4BFC-8F40-A78E3E78F0CE}.Release|x86.Build.0 = Release|Any CPU
 		{D1FFEB79-7B03-47B4-A62B-4276F10AE449}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D1FFEB79-7B03-47B4-A62B-4276F10AE449}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1FFEB79-7B03-47B4-A62B-4276F10AE449}.Debug|x64.ActiveCfg = Debug|Any CPU

@@ -5,13 +5,17 @@
     <TargetFramework>net5.0</TargetFramework>
 
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>release</ToolCommandName>
+    <ToolCommandName>gitrelease</ToolCommandName>
     <PackageOutputPath>./../nupkg</PackageOutputPath>
 
-    <PackageId>release-manager-xamarin</PackageId>
-    <Version>1.0.0</Version>
+    <PackageId>git-release</PackageId>
+    <Version>1.0.1</Version>
     <Authors>Shrikant Mali</Authors>
 
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\gitrelease.core\gitrelease.core.csproj" />
+  </ItemGroup>
 
 </Project>

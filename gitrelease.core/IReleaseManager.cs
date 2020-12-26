@@ -1,6 +1,6 @@
 ﻿namespace gitrelease
 {
-    public interface IVersionChanger
+    public interface IReleaseManager
     {
     }
 }

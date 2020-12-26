@@ -26,5 +26,5 @@ jobs:
     - name: Pack
       run: dotnet pack
     - name: Deploy
-      run: dotnet nuget push nupkg/release.1.0.0.nupkg --api-key oy2jcycrwwlteg2g4cgqbqgd2n4z6ixuzosppqcuy56uv4 --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push *.nupkg --api-key oy2jcycrwwlteg2g4cgqbqgd2n4z6ixuzosppqcuy56uv4 --source https://api.nuget.org/v3/index.json
 

@@ -6,7 +6,7 @@
 
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>release</ToolCommandName>
-    <PackageOutputPath>./nupkg</PackageOutputPath>
+    <PackageOutputPath>./../nupkg</PackageOutputPath>
 
     <PackageId>release-manager-xamarin</PackageId>
     <Version>1.0.0</Version>

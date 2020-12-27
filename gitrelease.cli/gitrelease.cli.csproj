@@ -11,8 +11,14 @@
     <PackageId>git-release</PackageId>
     <Version>1.0.1</Version>
     <Authors>Shrikant Mali</Authors>
+    <Description />
 
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
+    <PackageReference Include="plist-cil" Version="2.1.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\gitrelease.core\gitrelease.core.csproj" />

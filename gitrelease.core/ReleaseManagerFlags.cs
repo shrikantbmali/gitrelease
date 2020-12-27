@@ -4,6 +4,8 @@
     {
         Ok,
         InvalidFile,
-        InvalidPlatform
+        InvalidPlatform,
+        InvalidRootDir,
+        ConfigurationNotFound
     }
 }

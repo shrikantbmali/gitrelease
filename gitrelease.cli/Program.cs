@@ -1,6 +1,5 @@
 ﻿using gitrelease;
 using System;
-using System.IO;
 
 namespace release
 {
@@ -8,38 +7,26 @@ namespace release
     {
         static void Main(string[] _)
         {
-            var rootPath = Directory.GetCurrentDirectory();
+            var build = Builder.New()
+                            .UseRoot(
+                //Directory.GetCurrentDirectory()
+                @"C:\Users\ShrikantMali\sandbox\ac\main"
+                )
+                            .Create();
 
-            if (!ConfigFileExists(rootPath, out var configFilePath))
+            if (build.Flag == BuilderFlags.Ok)
             {
-                Console.WriteLine("gitrelease config file could not be found!", ConsoleColor.Red);
-            }
+                ReleaseManagerFlags releaseManagerFlag = build.ReleaseManager.Initialize();
 
-            var releaseManager =
-                                Builder
-                                .New()
-                                .UseConfig(configFilePath)
-                                .Create();
-            
-            if(releaseManager.Flag == BuilderFlags.Ok)
-            {
-                ReleaseManagerFlags releaseManagerFlag = releaseManager.ReleaseManager.Initialize();
-
-                if(releaseManagerFlag == ReleaseManagerFlags.Ok)
+                if (releaseManagerFlag == ReleaseManagerFlags.Ok)
                 {
-                    ReleaseSequenceFlags result = releaseManager.ReleaseManager.Release();
+                    ReleaseSequenceFlags result = build.ReleaseManager.Release();
                 }
             }
             else
             {
                 Console.WriteLine("No config file found or it is invalid, use release init command to generate a config file");
             }
-        }
-
-        private static bool ConfigFileExists(string rootPath, out string filePath)
-        {
-            filePath = Path.Combine(rootPath, ConfigFile.FixName);
-            return File.Exists(filePath);
         }
     }
 }

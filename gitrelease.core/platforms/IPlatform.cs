@@ -3,5 +3,7 @@
     internal interface IPlatform
     {
         PlatformType Type { get; }
+
+        ReleaseSequenceFlags Release();
     }
 }

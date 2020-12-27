@@ -1,4 +1,6 @@
-﻿namespace gitrelease.platforms
+﻿using System;
+
+namespace gitrelease.platforms
 {
     internal class Invalid : IPlatform
     {
@@ -6,6 +8,11 @@
 
         public Invalid(string path)
         {
+        }
+
+        public ReleaseSequenceFlags Release()
+        {
+            throw new NotSupportedException();
         }
     }
 }

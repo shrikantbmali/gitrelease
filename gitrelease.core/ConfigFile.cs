@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace gitrelease
 {
-    public struct ConfigFile
+    internal struct ConfigFile
     {
         [JsonPropertyName("platforms")]
         public IEnumerable<Platform> Platforms { get; set; }
@@ -12,7 +12,7 @@ namespace gitrelease
         public const string FixName = "gitrelease.config.json";
     }
 
-    public struct Platform
+    internal struct Platform
     {
         [JsonPropertyName("name")]
         public string Name { get; set; }

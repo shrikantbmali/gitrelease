@@ -10,5 +10,10 @@
         {
             this.path = path;
         }
+
+        public ReleaseSequenceFlags Release()
+        {
+            return ReleaseSequenceFlags.Ok;
+        }
     }
 }

@@ -3,6 +3,9 @@
     public enum ReleaseSequenceFlags
     {
         Ok,
-        Unknown
+        Unknown,
+        DirtyRepo,
+        InvalidDirectory,
+        FileNotFound
     }
 }

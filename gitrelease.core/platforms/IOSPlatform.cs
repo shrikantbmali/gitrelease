@@ -1,4 +1,8 @@
-﻿namespace gitrelease.platforms
+﻿using Claunia.PropertyList;
+using System.IO;
+using System.Linq;
+
+namespace gitrelease.platforms
 {
     internal class IOSPlatform : IPlatform
     {
@@ -9,6 +13,34 @@
         public IOSPlatform(string path)
         {
             this.path = path;
+        }
+
+        public ReleaseSequenceFlags Release()
+        {
+            if(!Directory.Exists(this.path))
+            {
+                return ReleaseSequenceFlags.InvalidDirectory;
+            }
+
+            var plistFilePath = GetPlistFilePath(this.path);
+
+            if (!File.Exists(plistFilePath))
+            {
+                return ReleaseSequenceFlags.FileNotFound;
+            }
+
+            NSDictionary rootDict = (NSDictionary)PropertyListParser.Parse(plistFilePath);
+
+            (rootDict["CFBundleShortVersionString"] as NSString).Content = "1.3.5";
+
+            PropertyListParser.SaveAsXml(rootDict, new FileInfo(plistFilePath));
+
+            return ReleaseSequenceFlags.Ok;
+        }
+
+        private string GetPlistFilePath(string path)
+        {
+            return Directory.GetFiles(path, "Info.plist").FirstOrDefault();
         }
     }
 }

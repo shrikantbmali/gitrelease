@@ -1,12 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Text.Json;
-
-namespace gitrelease
+﻿namespace gitrelease
 {
     public class Builder : IBuilder
     {
-        private string configFilePath;
+        private string root;
 
         private Builder() { }
 
@@ -15,45 +11,22 @@ namespace gitrelease
             return new Builder();
         }
 
-        public IBuilder UseConfig(string configFilePath)
+        public IBuilder UseRoot(string root)
         {
-            this.configFilePath = configFilePath;
+            this.root = root;
 
             return this;
         }
 
         public (BuilderFlags Flag, IReleaseManager ReleaseManager) Create()
         {
-            ConfigFile configFile = default;
-
-            if (!TryParseFile(out configFile, this.configFilePath))
-            {
-                return (BuilderFlags.InvalidFile, null);
-            }
-
-            return (Flag: BuilderFlags.Ok,
-                ReleaseManager: new ReleaseManager(configFile));
-        }
-
-        private static bool TryParseFile(out ConfigFile file, string filePath)
-        {
-            file = default;
-            try
-            {
-                file = JsonSerializer.Deserialize<ConfigFile>(File.ReadAllText(filePath));
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            return true;
+            return (Flag: BuilderFlags.Ok, ReleaseManager: new ReleaseManager(this.root));
         }
     }
 
     public interface IBuilder
     {
-        IBuilder UseConfig(string configFilePath);
+        IBuilder UseRoot(string configFilePath);
 
         (BuilderFlags Flag, IReleaseManager ReleaseManager) Create();
     }

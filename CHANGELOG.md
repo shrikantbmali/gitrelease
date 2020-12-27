@@ -1,4 +1,7 @@
 # Change Log\n\nAll notable changes to this project will be documented in this file. See [versionize](https://github.com/saintedlama/versionize) for commit guidelines.\n
+<a name="1.0.3"></a>
+## [1.0.3](https://www.github.com/shrknt35/release/releases/tag/v1.0.3) (2020-12-27)
+
 <a name="1.0.2"></a>
 ## [1.0.2](https://www.github.com/shrknt35/release/releases/tag/v1.0.2) (2020-12-27)
 

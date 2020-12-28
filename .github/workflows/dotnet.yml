@@ -27,16 +27,16 @@ jobs:
         dotnet tool install --tool-path . nbgv
 
     - name: Restore dependencies
-        run: dotnet restore
+      run: dotnet restore
     - name: Build
-        run: dotnet build
-    - name: Pack
-        run: dotnet pack 
+      run: dotnet build
+    - name: Pack--
+      run: dotnet pack 
     - name: Check version
-        run: ./nbgv get-version
+      run: ./nbgv get-version
     - name: ls && ls ./nupkg
-        run: ls && ls ./nupkg
+      run: ls && ls ./nupkg
     - name: Push
-        run: dotnet nuget push ./nupkg/$(./nbgv get-version -v NuGetPackageVersion).nupkg --api-key oy2gonkli5f2lnnhtu6aov2qaaqvvwmedkqa3zad76lcn4 --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ./nupkg/$(./nbgv get-version -v NuGetPackageVersion).nupkg --api-key oy2gonkli5f2lnnhtu6aov2qaaqvvwmedkqa3zad76lcn4 --source https://api.nuget.org/v3/index.json
 
 

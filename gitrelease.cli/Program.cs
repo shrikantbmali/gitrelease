@@ -1,5 +1,6 @@
 ﻿using gitrelease;
 using System;
+using System.IO;
 
 namespace release
 {
@@ -8,10 +9,7 @@ namespace release
         static void Main(string[] args)
         {
             var build = Builder.New()
-                            .UseRoot(
-                //Directory.GetCurrentDirectory()
-                @"C:\Users\ShrikantMali\sandbox\ac\main"
-                )
+                            .UseRoot(Directory.GetCurrentDirectory())
                             .Create();
 
             if (build.Flag == BuilderFlags.Ok)

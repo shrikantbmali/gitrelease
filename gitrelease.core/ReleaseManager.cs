@@ -81,12 +81,83 @@ namespace gitrelease
 
                 if (!status.IsDirty)
                 {
-                    return func(repo);
+                    var releasingFlags = func(repo);
+
+                    if(releasingFlags == ReleaseSequenceFlags.Ok)
+                    {
+                        return CreateReleaseCommit(repo);
+                    }
+
+                    return releasingFlags;
                 }
 
                 return ReleaseSequenceFlags.DirtyRepo;
             }
             catch (Exception ex)
+            {
+            }
+
+            return ReleaseSequenceFlags.Unknown;
+        }
+
+        private static ReleaseSequenceFlags CreateReleaseCommit(Repository repo)
+        {
+            var head = repo.Head;
+            ReleaseSequenceFlags result = ReleaseSequenceFlags.Unknown;
+
+            try
+            {
+                result = Stage(repo);
+                if (result == ReleaseSequenceFlags.Ok)
+                {
+                    result = Commit(repo);
+                }
+            }
+            catch (Exception)
+            {
+                result = ReleaseSequenceFlags.Unknown;
+            }
+
+            if(result != ReleaseSequenceFlags.Ok)
+            {
+                repo.Reset(ResetMode.Hard, head.Tip);
+            }
+
+            return result;
+        }
+
+        private static ReleaseSequenceFlags Commit(Repository repo)
+        {
+            try
+            {
+                var sign = repo.Config.BuildSignature(DateTime.Now);
+                repo.Commit("chore(AppVersion): App version updated.", sign, sign);
+
+                return ReleaseSequenceFlags.Ok;
+            }
+            catch (Exception)
+            {
+            }
+
+            return ReleaseSequenceFlags.Unknown;
+        }
+
+        private static ReleaseSequenceFlags Stage(Repository repo)
+        {
+            try
+            {
+                var status = repo.RetrieveStatus();
+
+                foreach (var file in status.Modified.Select(mods => mods.FilePath))
+                {
+                    repo.Index.Add(file);
+                }
+
+                repo.Index.Write();
+
+                return ReleaseSequenceFlags.Ok;
+            }
+            catch (Exception)
             {
             }
 

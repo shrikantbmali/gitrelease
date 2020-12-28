@@ -47,17 +47,39 @@ namespace gitrelease
 
         public ReleaseSequenceFlags Release()
         {
-            return Transaction(
-                repo => GitSanity(
-                    repo, () => StartReleasing()),
-                ReleaseSequenceFlags.Unknown);
+            return Transaction(repo => GitSanity(
+                repo, repo => PrepareRelease(
+                    repo, version => StartReleasing(version))), ReleaseSequenceFlags.Unknown);
         }
 
-        private ReleaseSequenceFlags StartReleasing()
+        private ReleaseSequenceFlags PrepareRelease(Repository repo, Func<string, ReleaseSequenceFlags> func)
+        {
+            try
+            {
+                var head = repo.Head;
+
+                ReleaseSequenceFlags flags = GitReleaser.PrepareRelease(repo, func);
+
+                //if (flags == ReleaseSequenceFlags.Ok)
+                //    return func("v");
+
+                return ReleaseSequenceFlags.Unknown;
+
+            }
+            catch (Exception)
+            {
+                //Rollback.
+                // clear dirty repo.
+            }
+
+            return ReleaseSequenceFlags.Ok;
+        }
+
+        private ReleaseSequenceFlags StartReleasing(string version)
         {
             foreach (var platform in this.platforms)
             {
-                ReleaseSequenceFlags flag = platform.Release();
+                ReleaseSequenceFlags flag = platform.Release(version.ToString());
 
                 if (flag != ReleaseSequenceFlags.Ok)
                 {
@@ -74,15 +96,15 @@ namespace gitrelease
             return File.Exists(filePath);
         }
 
-        private static ReleaseSequenceFlags GitSanity(Repository repo, Func<ReleaseSequenceFlags> func)
+        private static ReleaseSequenceFlags GitSanity(Repository repo, Func<Repository, ReleaseSequenceFlags> func)
         {
             try
             {
                 var status = repo.RetrieveStatus(new StatusOptions());
 
-                //if (!status.IsDirty)
+                if (!status.IsDirty)
                 {
-                    return func();
+                    return func(repo);
                 }
 
                 return ReleaseSequenceFlags.DirtyRepo;

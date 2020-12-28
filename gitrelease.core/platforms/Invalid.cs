@@ -10,7 +10,7 @@ namespace gitrelease.platforms
         {
         }
 
-        public ReleaseSequenceFlags Release()
+        public ReleaseSequenceFlags Release(string version)
         {
             throw new NotSupportedException();
         }

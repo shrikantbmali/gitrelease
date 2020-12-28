@@ -15,7 +15,7 @@ namespace gitrelease.platforms
             this.path = path;
         }
 
-        public ReleaseSequenceFlags Release()
+        public ReleaseSequenceFlags Release(string version)
         {
             if(!Directory.Exists(this.path))
             {
@@ -31,7 +31,7 @@ namespace gitrelease.platforms
 
             NSDictionary rootDict = (NSDictionary)PropertyListParser.Parse(plistFilePath);
 
-            (rootDict["CFBundleShortVersionString"] as NSString).Content = "1.3.5";
+            (rootDict["CFBundleShortVersionString"] as NSString).Content = version;
 
             PropertyListParser.SaveAsXml(rootDict, new FileInfo(plistFilePath));
 

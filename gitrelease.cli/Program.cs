@@ -5,7 +5,7 @@ namespace release
 {
     class Program
     {
-        static void Main(string[] _)
+        static void Main(string[] args)
         {
             var build = Builder.New()
                             .UseRoot(

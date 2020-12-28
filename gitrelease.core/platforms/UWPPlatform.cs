@@ -11,7 +11,7 @@
             this.path = path;
         }
 
-        public ReleaseSequenceFlags Release()
+        public ReleaseSequenceFlags Release(string version)
         {
             return ReleaseSequenceFlags.Ok;
         }

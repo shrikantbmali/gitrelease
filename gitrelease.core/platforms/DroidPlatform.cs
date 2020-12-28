@@ -15,7 +15,7 @@ namespace gitrelease.platforms
             this.path = path;
         }
 
-        public ReleaseSequenceFlags Release()
+        public ReleaseSequenceFlags Release(string version)
         {
             if (!Directory.Exists(this.path))
             {
@@ -34,7 +34,7 @@ namespace gitrelease.platforms
 
             XmlAttribute node = xml.SelectNodes("/manifest").Item(0).Attributes["android:versionName"];
 
-            node.InnerText = "I am inner text";
+            node.InnerText = version;
 
             xml.Save(manifestFilePath);
             return ReleaseSequenceFlags.Ok;

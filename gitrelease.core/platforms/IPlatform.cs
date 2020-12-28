@@ -4,6 +4,6 @@
     {
         PlatformType Type { get; }
 
-        ReleaseSequenceFlags Release();
+        ReleaseSequenceFlags Release(string version);
     }
 }

@@ -10,6 +10,8 @@ namespace gitrelease
     {
         internal static ReleaseSequenceFlags PrepareRelease(Repository repo, Func<string, ReleaseSequenceFlags> version)
         {
+            var head = repo.Head;
+
             try
             {
                 var rootDirectory = Path.GetDirectoryName(Path.GetDirectoryName(repo.Info.Path));
@@ -19,10 +21,10 @@ namespace gitrelease
             }
             catch (Exception ex)
             {
-                return ReleaseSequenceFlags.Unknown;
+                repo.Reset(ResetMode.Hard, head.Tip);
             }
 
-            return ReleaseSequenceFlags.Ok;
+            return ReleaseSequenceFlags.Unknown;
         }
 
         private static ReleaseSequenceFlags DetermineVersion(string output, Func<string, ReleaseSequenceFlags> func)
@@ -32,8 +34,7 @@ namespace gitrelease
                 var releaseMessage = ReleaseMessage.FromJson(output);
                 
                 if (releaseMessage?.NewBranch?.Version != null)
-                {
-                    
+                {                    
                     var version = $"{releaseMessage.NewBranch.Version}.{releaseMessage.NewBranch.Commit.Substring(0, 10)}";
                     return func(version);
                 }

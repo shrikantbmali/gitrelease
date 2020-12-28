@@ -48,31 +48,8 @@ namespace gitrelease
         public ReleaseSequenceFlags Release()
         {
             return Transaction(repo => GitSanity(
-                repo, repo => PrepareRelease(
+                repo, repo => GitReleaser.PrepareRelease(
                     repo, version => StartReleasing(version))), ReleaseSequenceFlags.Unknown);
-        }
-
-        private ReleaseSequenceFlags PrepareRelease(Repository repo, Func<string, ReleaseSequenceFlags> func)
-        {
-            try
-            {
-                var head = repo.Head;
-
-                ReleaseSequenceFlags flags = GitReleaser.PrepareRelease(repo, func);
-
-                //if (flags == ReleaseSequenceFlags.Ok)
-                //    return func("v");
-
-                return ReleaseSequenceFlags.Unknown;
-
-            }
-            catch (Exception)
-            {
-                //Rollback.
-                // clear dirty repo.
-            }
-
-            return ReleaseSequenceFlags.Ok;
         }
 
         private ReleaseSequenceFlags StartReleasing(string version)

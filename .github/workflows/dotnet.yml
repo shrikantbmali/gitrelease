@@ -13,16 +13,30 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+    - run: git checkout HEAD^
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.101
+
+    - name: Restore Tools
+      run: |
+        dotnet tool install --tool-path . nbgv
+
     - name: Restore dependencies
-      run: dotnet restore
+        run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
-    # - name: Test
-    #   run: dotnet test --no-build --verbosity normal
+        run: dotnet build
     - name: Pack
-      run: dotnet pack && dotnet nuget push ./nupkg/git-release.1.0.1.nupkg --api-key oy2gonkli5f2lnnhtu6aov2qaaqvvwmedkqa3zad76lcn4 --source https://api.nuget.org/v3/index.json
+        run: dotnet pack 
+    - name: Check version
+        run: ./nbgv get-version
+    - name: ls && ls ./nupkg
+        run: ls && ls ./nupkg
+    - name: Push
+        run: dotnet nuget push ./nupkg/$(./nbgv get-version -v NuGetPackageVersion).nupkg --api-key oy2gonkli5f2lnnhtu6aov2qaaqvvwmedkqa3zad76lcn4 --source https://api.nuget.org/v3/index.json
+
 

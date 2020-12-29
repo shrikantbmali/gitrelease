@@ -1,9 +1,11 @@
-﻿namespace gitrelease.platforms
+﻿namespace gitrelease.core.platforms
 {
     internal interface IPlatform
     {
         PlatformType Type { get; }
 
-        ReleaseSequenceFlags Release(string version);
+        ReleaseManagerFlags Release(string version);
+
+        string GetVersion();
     }
 }

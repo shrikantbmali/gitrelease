@@ -1,9 +1,11 @@
-﻿namespace gitrelease
+﻿namespace gitrelease.core
 {
     public interface IReleaseManager
     {
         ReleaseManagerFlags Initialize();
         
-        ReleaseSequenceFlags Release();
+        ReleaseManagerFlags Release();
+
+        string[] GetVersion(string platformName);
     }
 }

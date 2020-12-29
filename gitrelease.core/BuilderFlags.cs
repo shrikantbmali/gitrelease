@@ -1,4 +1,4 @@
-﻿namespace gitrelease
+﻿namespace gitrelease.core
 {
     public enum BuilderFlags
     {

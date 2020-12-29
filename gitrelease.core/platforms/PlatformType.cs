@@ -1,4 +1,4 @@
-﻿namespace gitrelease.platforms
+﻿namespace gitrelease.core.platforms
 {
     internal enum PlatformType
     {

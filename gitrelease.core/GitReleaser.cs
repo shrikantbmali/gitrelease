@@ -1,14 +1,16 @@
-﻿using gitrelease.core.nvgb;
-using LibGit2Sharp;
-using System;
+﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using LibGit2Sharp;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
-namespace gitrelease
+namespace gitrelease.core
 {
     internal static class GitReleaser
     {
-        internal static ReleaseSequenceFlags PrepareRelease(Repository repo, Func<string, ReleaseSequenceFlags> version)
+        internal static ReleaseManagerFlags PrepareRelease(Repository repo, Func<string, ReleaseManagerFlags> version)
         {
             var head = repo.Head;
 
@@ -16,7 +18,7 @@ namespace gitrelease
             {
                 var rootDirectory = Path.GetDirectoryName(Path.GetDirectoryName(repo.Info.Path));
                 string command = Path.Combine(rootDirectory, @".\nbgv.exe");
-                return ExecuteCommand(command, $"prepare-release -p {rootDirectory} -f json",
+                return CommandExecutor.ExecuteCommand(command, $"prepare-release -p {rootDirectory} -f json",
                     output => DetermineVersion(output, version));
             }
             catch (Exception ex)
@@ -24,10 +26,10 @@ namespace gitrelease
                 repo.Reset(ResetMode.Hard, head.Tip);
             }
 
-            return ReleaseSequenceFlags.Unknown;
+            return ReleaseManagerFlags.Unknown;
         }
 
-        private static ReleaseSequenceFlags DetermineVersion(string output, Func<string, ReleaseSequenceFlags> func)
+        private static ReleaseManagerFlags DetermineVersion(string output, Func<string, ReleaseManagerFlags> func)
         {
             try
             {
@@ -39,19 +41,20 @@ namespace gitrelease
                     return func(version);
                 }
                 else
-                    return ReleaseSequenceFlags.Unknown;
+                    return ReleaseManagerFlags.Unknown;
             }
             catch (Exception ex)
             {
-                return ReleaseSequenceFlags.Unknown;
+                return ReleaseManagerFlags.Unknown;
             }
-
-            return ReleaseSequenceFlags.Unknown;
         }
+    }
 
-        private static ReleaseSequenceFlags ExecuteCommand(string command, string args, Func<string, ReleaseSequenceFlags> callback)
+    internal static class CommandExecutor
+    {
+        public static ReleaseManagerFlags ExecuteCommand(string command, string args, Func<string, ReleaseManagerFlags> callback)
         {
-            var process = new Process()
+            var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -74,15 +77,8 @@ namespace gitrelease
             return callback(string.IsNullOrEmpty(err) ? output : err);
         }
     }
-}
 
-namespace gitrelease.core.nvgb
-{
-    using System.Globalization;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
-    public partial class ReleaseMessage
+    internal partial class ReleaseMessage
     {
         [JsonProperty("CurrentBranch")]
         public Branch CurrentBranch { get; set; }
@@ -91,7 +87,7 @@ namespace gitrelease.core.nvgb
         public Branch NewBranch { get; set; }
     }
 
-    public partial class Branch
+    internal class Branch
     {
         [JsonProperty("Name")]
         public string Name { get; set; }
@@ -103,12 +99,12 @@ namespace gitrelease.core.nvgb
         public string Version { get; set; }
     }
 
-    public partial class ReleaseMessage
-        {
+    internal partial class ReleaseMessage
+    {
         public static ReleaseMessage FromJson(string json) => JsonConvert.DeserializeObject<ReleaseMessage>(json, Converter.Settings);
     }
 
-    public static class Serialize
+    internal static class Serialize
     {
         public static string ToJson(this ReleaseMessage self) => JsonConvert.SerializeObject(self, Converter.Settings);
     }

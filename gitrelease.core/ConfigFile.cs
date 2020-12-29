@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace gitrelease
+namespace gitrelease.core
 {
     internal struct ConfigFile
     {
@@ -19,5 +22,29 @@ namespace gitrelease
 
         [JsonPropertyName("path")]
         public string Path { get; set; }
+    }
+
+    internal static class Config
+    {
+        public static bool Save(this ConfigFile file, string filePath)
+        {
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                };
+
+                JsonSerializer.Serialize(
+                    new Utf8JsonWriter(new FileStream(filePath, FileMode.CreateNew)),
+                    file, options);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

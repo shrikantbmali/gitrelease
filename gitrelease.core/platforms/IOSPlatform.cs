@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 
-namespace gitrelease.platforms
+namespace gitrelease.core.platforms
 {
     internal class IOSPlatform : IPlatform
     {
@@ -15,27 +15,54 @@ namespace gitrelease.platforms
             this.path = path;
         }
 
-        public ReleaseSequenceFlags Release(string version)
+        public ReleaseManagerFlags Release(string version)
         {
             if(!Directory.Exists(this.path))
             {
-                return ReleaseSequenceFlags.InvalidDirectory;
+                return ReleaseManagerFlags.InvalidDirectory;
             }
 
             var plistFilePath = GetPlistFilePath(this.path);
 
             if (!File.Exists(plistFilePath))
             {
-                return ReleaseSequenceFlags.FileNotFound;
+                return ReleaseManagerFlags.FileNotFound;
             }
 
-            NSDictionary rootDict = (NSDictionary)PropertyListParser.Parse(plistFilePath);
+            var rootDict = (NSDictionary)PropertyListParser.Parse(plistFilePath);
 
-            (rootDict["CFBundleShortVersionString"] as NSString).Content = version;
+            if (rootDict?["CFBundleShortVersionString"] is NSString nsString)
+            {
+                nsString.Content = version;
+            }
 
             PropertyListParser.SaveAsXml(rootDict, new FileInfo(plistFilePath));
 
-            return ReleaseSequenceFlags.Ok;
+            return ReleaseManagerFlags.Ok;
+        }
+
+        public string GetVersion()
+        {
+            if (!Directory.Exists(this.path))
+            {
+                return "Invalid directory";
+            }
+
+            var plistFilePath = GetPlistFilePath(this.path);
+
+            if (!File.Exists(plistFilePath))
+            {
+                return "Invalid directory";
+            }
+
+            var rootDict = (NSDictionary)PropertyListParser.Parse(plistFilePath);
+
+            if (rootDict?["CFBundleShortVersionString"] is NSString nsString)
+            {
+                return nsString.Content;
+            }
+
+            return "Invalid directory";
         }
 
         private string GetPlistFilePath(string path)

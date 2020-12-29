@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Xml;
 
-namespace gitrelease.platforms
+namespace gitrelease.core.platforms
 {
     internal class DroidPlatform : IPlatform
     {
@@ -15,32 +15,65 @@ namespace gitrelease.platforms
             this.path = path;
         }
 
-        public ReleaseSequenceFlags Release(string version)
+        public ReleaseManagerFlags Release(string version)
         {
             if (!Directory.Exists(this.path))
             {
-                return ReleaseSequenceFlags.InvalidDirectory;
+                return ReleaseManagerFlags.InvalidDirectory;
             }
 
             var manifestFilePath = GetManifestFilePath(this.path);
 
             if (!File.Exists(manifestFilePath))
             {
-                return ReleaseSequenceFlags.FileNotFound;
+                return ReleaseManagerFlags.FileNotFound;
             }
 
-            var xml = new XmlDocument();
-            xml.Load(manifestFilePath);
+            var xml = LoadManifest(manifestFilePath);
 
-            XmlAttribute node = xml.SelectNodes("/manifest").Item(0).Attributes["android:versionName"];
+            if (xml != null)
+            {
+                var node = xml?.SelectNodes("/manifest")?.Item(0)?.Attributes?["android:versionName"];
 
-            node.InnerText = version;
+                if (node != null)
+                    node.InnerText = version;
 
-            xml.Save(manifestFilePath);
-            return ReleaseSequenceFlags.Ok;
+                xml?.Save(manifestFilePath);
+
+                return ReleaseManagerFlags.Ok;
+            }
+
+            return ReleaseManagerFlags.Unknown;
         }
 
-        private string GetManifestFilePath(string path)
+        private static XmlDocument LoadManifest(string manifestFilePath)
+        {
+            var xml = new XmlDocument();
+            xml.Load(manifestFilePath);
+            return xml;
+        }
+
+        public string GetVersion()
+        {
+            if (!Directory.Exists(this.path))
+            {
+                return $"{this.Type}: manifest not found";
+            }
+
+            var manifestFilePath = GetManifestFilePath(this.path);
+
+            if (!File.Exists(manifestFilePath))
+            {
+                return $"{this.Type}: manifest not found";
+            }
+
+            var xml = LoadManifest(manifestFilePath);
+            var node = xml?.SelectNodes("/manifest")?.Item(0)?.Attributes?["android:versionName"];
+
+            return node?.InnerText;
+        }
+
+        private static string GetManifestFilePath(string path)
         {
             return Directory.GetFiles(path, @"Properties\AndroidManifest.xml").FirstOrDefault();
         }

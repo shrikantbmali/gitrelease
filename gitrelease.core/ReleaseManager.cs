@@ -1,16 +1,17 @@
-﻿using gitrelease.platforms;
+﻿using gitrelease.core.platforms;
 using LibGit2Sharp;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-namespace gitrelease
+namespace gitrelease.core
 {
     internal class ReleaseManager : IReleaseManager
     {
-        private IEnumerable<IPlatform> platforms;
+        private ReadOnlyDictionary<string, IPlatform> platforms;
         private string rootDirectory;
 
         public ReleaseManager(string rootDirectory)
@@ -35,9 +36,9 @@ namespace gitrelease
                 return ReleaseManagerFlags.InvalidFile;
             }
 
-            this.platforms = CreatePlatforms(config.Platforms).ToArray();
+            this.platforms = CreatePlatforms(config.Platforms);
 
-            if (this.platforms.Any(platform => platform.Type == PlatformType.INVALID))
+            if (this.platforms.Any(platform => platform.Value.Type == PlatformType.INVALID))
             {
                 return ReleaseManagerFlags.InvalidPlatform;
             }
@@ -45,26 +46,33 @@ namespace gitrelease
             return ReleaseManagerFlags.Ok;
         }
 
-        public ReleaseSequenceFlags Release()
+        public ReleaseManagerFlags Release()
         {
             return Transaction(repo => GitSanity(
                 repo, repo => GitReleaser.PrepareRelease(
-                    repo, version => StartReleasing(version))), ReleaseSequenceFlags.Unknown);
+                    repo, StartReleasing)), ReleaseManagerFlags.Unknown);
         }
 
-        private ReleaseSequenceFlags StartReleasing(string version)
+        public string[] GetVersion(string platformName)
+        {
+            return platformName == "all"
+                ? this.platforms.Select(p => p.Value.GetVersion()).ToArray()
+                : new[] {this.platforms[platformName].GetVersion()};
+        }
+
+        private ReleaseManagerFlags StartReleasing(string version)
         {
             foreach (var platform in this.platforms)
             {
-                ReleaseSequenceFlags flag = platform.Release(version.ToString());
+                ReleaseManagerFlags flag = platform.Value.Release(version);
 
-                if (flag != ReleaseSequenceFlags.Ok)
+                if (flag != ReleaseManagerFlags.Ok)
                 {
                     return flag;
                 }
             }
 
-            return ReleaseSequenceFlags.Ok;
+            return ReleaseManagerFlags.Ok;
         }
 
         private static bool ConfigFileExists(string rootPath, out string filePath)
@@ -73,7 +81,7 @@ namespace gitrelease
             return File.Exists(filePath);
         }
 
-        private static ReleaseSequenceFlags GitSanity(Repository repo, Func<Repository, ReleaseSequenceFlags> func)
+        private static ReleaseManagerFlags GitSanity(Repository repo, Func<Repository, ReleaseManagerFlags> func)
         {
             try
             {
@@ -83,7 +91,7 @@ namespace gitrelease
                 {
                     var releasingFlags = func(repo);
 
-                    if(releasingFlags == ReleaseSequenceFlags.Ok)
+                    if(releasingFlags == ReleaseManagerFlags.Ok)
                     {
                         return CreateReleaseCommit(repo);
                     }
@@ -91,34 +99,34 @@ namespace gitrelease
                     return releasingFlags;
                 }
 
-                return ReleaseSequenceFlags.DirtyRepo;
+                return ReleaseManagerFlags.DirtyRepo;
             }
             catch (Exception ex)
             {
             }
 
-            return ReleaseSequenceFlags.Unknown;
+            return ReleaseManagerFlags.Unknown;
         }
 
-        private static ReleaseSequenceFlags CreateReleaseCommit(Repository repo)
+        private static ReleaseManagerFlags CreateReleaseCommit(Repository repo)
         {
             var head = repo.Head;
-            ReleaseSequenceFlags result = ReleaseSequenceFlags.Unknown;
+            ReleaseManagerFlags result = ReleaseManagerFlags.Unknown;
 
             try
             {
                 result = Stage(repo);
-                if (result == ReleaseSequenceFlags.Ok)
+                if (result == ReleaseManagerFlags.Ok)
                 {
                     result = Commit(repo);
                 }
             }
             catch (Exception)
             {
-                result = ReleaseSequenceFlags.Unknown;
+                result = ReleaseManagerFlags.Unknown;
             }
 
-            if(result != ReleaseSequenceFlags.Ok)
+            if(result != ReleaseManagerFlags.Ok)
             {
                 repo.Reset(ResetMode.Hard, head.Tip);
             }
@@ -126,23 +134,23 @@ namespace gitrelease
             return result;
         }
 
-        private static ReleaseSequenceFlags Commit(Repository repo)
+        private static ReleaseManagerFlags Commit(Repository repo)
         {
             try
             {
                 var sign = repo.Config.BuildSignature(DateTime.Now);
                 repo.Commit("chore(AppVersion): App version updated.", sign, sign);
 
-                return ReleaseSequenceFlags.Ok;
+                return ReleaseManagerFlags.Ok;
             }
             catch (Exception)
             {
             }
 
-            return ReleaseSequenceFlags.Unknown;
+            return ReleaseManagerFlags.Unknown;
         }
 
-        private static ReleaseSequenceFlags Stage(Repository repo)
+        private static ReleaseManagerFlags Stage(Repository repo)
         {
             try
             {
@@ -155,16 +163,16 @@ namespace gitrelease
 
                 repo.Index.Write();
 
-                return ReleaseSequenceFlags.Ok;
+                return ReleaseManagerFlags.Ok;
             }
             catch (Exception)
             {
             }
 
-            return ReleaseSequenceFlags.Unknown;
+            return ReleaseManagerFlags.Unknown;
         }
 
-        private ReleaseSequenceFlags Transaction(Func<Repository, ReleaseSequenceFlags> func, ReleaseSequenceFlags failFlag)
+        private ReleaseManagerFlags Transaction(Func<Repository, ReleaseManagerFlags> func, ReleaseManagerFlags failFlag)
         {
             Repository repo = null;
 
@@ -185,30 +193,35 @@ namespace gitrelease
             }
         }
 
-        private IEnumerable<IPlatform> CreatePlatforms(IEnumerable<Platform> platforms)
+        private ReadOnlyDictionary<string, IPlatform> CreatePlatforms(IEnumerable<Platform> platforms)
         {
+            var ps = new Dictionary<string, IPlatform>();
+
             foreach (var platform in platforms)
             {
-                var absoutePath = Path.Combine(this.rootDirectory, platform.Path);
+                var absolutePath = Path.Combine(this.rootDirectory, platform.Path);
+
                 switch (platform.Name?.ToLower())
                 {
                     case "dll":
-                        yield return new DLLPlatform(absoutePath);
+                        ps.Add(platform.Name, new DLLPlatform(absolutePath));
                         break;
                     case "ios":
-                        yield return new IOSPlatform(absoutePath);
+                        ps.Add(platform.Name, new IOSPlatform(absolutePath));
                         break;
                     case "droid":
-                        yield return new DroidPlatform(absoutePath);
+                        ps.Add(platform.Name, new DroidPlatform(absolutePath));
                         break;
                     case "uwp":
-                        yield return new UWPPlatform(absoutePath);
+                        ps.Add(platform.Name, new UWPPlatform(absolutePath));
                         break;
                     default:
-                        yield return new Invalid(absoutePath);
+                        ps.Add("null", new Invalid(absolutePath));
                         break;
                 }
             }
+
+            return new ReadOnlyDictionary<string, IPlatform>(ps);
         }
 
         private static bool TryParseFile(string filePath, out ConfigFile file)

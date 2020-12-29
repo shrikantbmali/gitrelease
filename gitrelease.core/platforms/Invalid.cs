@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace gitrelease.platforms
+namespace gitrelease.core.platforms
 {
     internal class Invalid : IPlatform
     {
@@ -10,9 +10,14 @@ namespace gitrelease.platforms
         {
         }
 
-        public ReleaseSequenceFlags Release(string version)
+        public ReleaseManagerFlags Release(string version)
         {
             throw new NotSupportedException();
+        }
+
+        public string GetVersion()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace gitrelease.platforms
+﻿namespace gitrelease.core.platforms
 {
     internal class UWPPlatform : IPlatform
     {
@@ -11,9 +11,14 @@
             this.path = path;
         }
 
-        public ReleaseSequenceFlags Release(string version)
+        public ReleaseManagerFlags Release(string version)
         {
-            return ReleaseSequenceFlags.Ok;
+            return ReleaseManagerFlags.Ok;
+        }
+
+        public string GetVersion()
+        {
+            return "";
         }
     }
 }

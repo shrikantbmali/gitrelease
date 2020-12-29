@@ -9,7 +9,6 @@
     <PackageOutputPath>./../nupkg</PackageOutputPath>
 
     <PackageId>git-release</PackageId>
-    <Version>1.0.1</Version>
     <Authors>Shrikant Mali</Authors>
     <Description />
 

@@ -2,12 +2,11 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
-using System.Threading;
 using gitrelease.core;
 
 namespace gitrelease.cli
 {
-    class Program
+    static class Program
     {
         static int Main(string[] args)
         {

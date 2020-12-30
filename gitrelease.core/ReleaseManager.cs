@@ -11,22 +11,22 @@ namespace gitrelease.core
 {
     internal class ReleaseManager : IReleaseManager
     {
-        private ReadOnlyDictionary<string, IPlatform> platforms;
-        private string rootDirectory;
+        private ReadOnlyDictionary<string, IPlatform> _platforms;
+        private readonly string _rootDirectory;
 
         public ReleaseManager(string rootDirectory)
         {
-            this.rootDirectory = rootDirectory;
+            this._rootDirectory = rootDirectory;
         }
 
         public ReleaseManagerFlags Initialize()
         {
-            if (!Directory.Exists(this.rootDirectory))
+            if (!Directory.Exists(this._rootDirectory))
             {
                 return ReleaseManagerFlags.InvalidRootDir;
             }
 
-            if(!ConfigFileExists(this.rootDirectory, out string configFilePath))
+            if (!ConfigFileExists(this._rootDirectory, out string configFilePath))
             {
                 return ReleaseManagerFlags.ConfigurationNotFound;
             }
@@ -36,9 +36,9 @@ namespace gitrelease.core
                 return ReleaseManagerFlags.InvalidFile;
             }
 
-            this.platforms = CreatePlatforms(config.Platforms);
+            this._platforms = CreatePlatforms(config.Platforms);
 
-            if (this.platforms.Any(platform => platform.Value.Type == PlatformType.INVALID))
+            if (this._platforms.Any(platform => platform.Value.Type == PlatformType.INVALID))
             {
                 return ReleaseManagerFlags.InvalidPlatform;
             }
@@ -48,31 +48,88 @@ namespace gitrelease.core
 
         public ReleaseManagerFlags Release()
         {
-            return Transaction(repo => GitSanity(
-                repo, repo => GitReleaser.PrepareRelease(
-                    repo, StartReleasing)), ReleaseManagerFlags.Unknown);
+            return Transaction(repo => GitSanity(repo, PrepareRelease), ReleaseManagerFlags.Unknown);
+        }
+
+        private ReleaseManagerFlags PrepareRelease(IRepository repo)
+        {
+            var head = repo.Head;
+
+            var result = ReleaseManagerFlags.Unknown;
+
+            try
+            {
+                var (output, isError) = ExecutePrepareRelease();
+
+                if (isError)
+                    return ReleaseManagerFlags.ToolNotFound;
+
+                var releaseMessage = ReleaseMessage.FromJson(output);
+
+                result = DeleteBranchAndRollbackCommitsDone(repo, head.Tip, releaseMessage);
+
+                if (result != ReleaseManagerFlags.Ok)
+                    return result;
+
+                var version = $"{releaseMessage.NewBranch.Version}.{releaseMessage.NewBranch.Commit.Substring(0, 10)}";
+
+                IEnumerable<(ReleaseManagerFlags flag, string[] changedFiles)> release =
+                    this._platforms.Select(platform => platform.Value.Release(version)).ToArray();
+
+                result = release.FirstOrDefault(res => res.flag != ReleaseManagerFlags.Ok).flag;
+
+                if (result == ReleaseManagerFlags.Ok)
+                {
+                    result = Stage(repo);
+                    if (result == ReleaseManagerFlags.Ok)
+                    {
+                        result = Commit(repo, version);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            finally
+            {
+                if (result != ReleaseManagerFlags.Ok)
+                {
+                    repo.Reset(ResetMode.Hard, head.Tip);
+                }
+            }
+            
+            return result;
+        }
+
+        private (string output, bool isError) ExecutePrepareRelease()
+        {
+            var command = Path.Combine(_rootDirectory, @".\nbgv.exe");
+
+            return CommandExecutor.ExecuteCommand(command, $"prepare-release -p {_rootDirectory} -f json");
+        }
+
+        private static ReleaseManagerFlags DeleteBranchAndRollbackCommitsDone(IRepository repo, Commit head, ReleaseMessage releaseMessage)
+        {
+            try
+            {
+                repo.Branches.Remove(releaseMessage.NewBranch.Name);
+                repo.Reset(ResetMode.Soft, head);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return ReleaseManagerFlags.UnableToRollbackChangesDoneByNVGB;
+            }
+
+            return ReleaseManagerFlags.Ok;
         }
 
         public string[] GetVersion(string platformName)
         {
             return platformName == "all"
-                ? this.platforms.Select(p => p.Value.GetVersion()).ToArray()
-                : new[] {this.platforms[platformName].GetVersion()};
-        }
-
-        private ReleaseManagerFlags StartReleasing(string version)
-        {
-            foreach (var platform in this.platforms)
-            {
-                ReleaseManagerFlags flag = platform.Value.Release(version);
-
-                if (flag != ReleaseManagerFlags.Ok)
-                {
-                    return flag;
-                }
-            }
-
-            return ReleaseManagerFlags.Ok;
+                ? this._platforms.Select(p => p.Value.GetVersion()).ToArray()
+                : new[] { this._platforms[platformName].GetVersion() };
         }
 
         private static bool ConfigFileExists(string rootPath, out string filePath)
@@ -83,74 +140,41 @@ namespace gitrelease.core
 
         private static ReleaseManagerFlags GitSanity(Repository repo, Func<Repository, ReleaseManagerFlags> func)
         {
+            var head = repo.Head;
+
             try
             {
                 var status = repo.RetrieveStatus(new StatusOptions());
 
-                if (!status.IsDirty)
-                {
-                    var releasingFlags = func(repo);
-
-                    if(releasingFlags == ReleaseManagerFlags.Ok)
-                    {
-                        return CreateReleaseCommit(repo);
-                    }
-
-                    return releasingFlags;
-                }
-
-                return ReleaseManagerFlags.DirtyRepo;
+                return !status.IsDirty ? func(repo) : ReleaseManagerFlags.DirtyRepo;
             }
             catch (Exception ex)
             {
+                repo.Reset(ResetMode.Hard, head.Tip);
+                Console.WriteLine(ex);
             }
 
             return ReleaseManagerFlags.Unknown;
         }
 
-        private static ReleaseManagerFlags CreateReleaseCommit(Repository repo)
-        {
-            var head = repo.Head;
-            ReleaseManagerFlags result = ReleaseManagerFlags.Unknown;
-
-            try
-            {
-                result = Stage(repo);
-                if (result == ReleaseManagerFlags.Ok)
-                {
-                    result = Commit(repo);
-                }
-            }
-            catch (Exception)
-            {
-                result = ReleaseManagerFlags.Unknown;
-            }
-
-            if(result != ReleaseManagerFlags.Ok)
-            {
-                repo.Reset(ResetMode.Hard, head.Tip);
-            }
-
-            return result;
-        }
-
-        private static ReleaseManagerFlags Commit(Repository repo)
+        private static ReleaseManagerFlags Commit(IRepository repo, string version)
         {
             try
             {
                 var sign = repo.Config.BuildSignature(DateTime.Now);
-                repo.Commit("chore(AppVersion): App version updated.", sign, sign);
+                repo.Commit($"chore(AppVersion): App version set to {version}.", sign, sign);
 
                 return ReleaseManagerFlags.Ok;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(ex);
             }
 
             return ReleaseManagerFlags.Unknown;
         }
 
-        private static ReleaseManagerFlags Stage(Repository repo)
+        private static ReleaseManagerFlags Stage(IRepository repo)
         {
             try
             {
@@ -165,8 +189,9 @@ namespace gitrelease.core
 
                 return ReleaseManagerFlags.Ok;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine(e);
             }
 
             return ReleaseManagerFlags.Unknown;
@@ -178,7 +203,7 @@ namespace gitrelease.core
 
             try
             {
-                repo = new Repository(this.rootDirectory);
+                repo = new Repository(this._rootDirectory);
 
                 return func(repo);
             }
@@ -199,7 +224,7 @@ namespace gitrelease.core
 
             foreach (var platform in platforms)
             {
-                var absolutePath = Path.Combine(this.rootDirectory, platform.Path);
+                var absolutePath = Path.Combine(this._rootDirectory, platform.Path);
 
                 switch (platform.Name?.ToLower())
                 {

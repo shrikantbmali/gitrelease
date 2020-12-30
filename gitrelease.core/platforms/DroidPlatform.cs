@@ -15,18 +15,18 @@ namespace gitrelease.core.platforms
             this.path = path;
         }
 
-        public ReleaseManagerFlags Release(string version)
+        public (ReleaseManagerFlags flag, string[] changedFiles) Release(string version)
         {
             if (!Directory.Exists(this.path))
             {
-                return ReleaseManagerFlags.InvalidDirectory;
+                return (ReleaseManagerFlags.InvalidDirectory, new string[]{});
             }
 
             var manifestFilePath = GetManifestFilePath(this.path);
 
             if (!File.Exists(manifestFilePath))
             {
-                return ReleaseManagerFlags.FileNotFound;
+                return (ReleaseManagerFlags.FileNotFound, new string[] { });
             }
 
             var xml = LoadManifest(manifestFilePath);
@@ -40,10 +40,10 @@ namespace gitrelease.core.platforms
 
                 xml?.Save(manifestFilePath);
 
-                return ReleaseManagerFlags.Ok;
+                return (ReleaseManagerFlags.Ok, new []{ manifestFilePath });
             }
 
-            return ReleaseManagerFlags.Unknown;
+            return (ReleaseManagerFlags.Unknown, new string[]{});
         }
 
         private static XmlDocument LoadManifest(string manifestFilePath)

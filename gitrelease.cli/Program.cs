@@ -6,11 +6,12 @@ using gitrelease.core;
 
 namespace gitrelease.cli
 {
-    static class Program
+    internal static class Program
     {
         static int Main(string[] args)
         {
-            var rootCommand = new RootCommand { Handler = CommandHandler.Create(ReleaseSequence) };
+            var rootCommand = new RootCommand { Handler = CommandHandler.Create<string>(ReleaseSequence) };
+            rootCommand.AddOption(new Option<string>(new []{ "--root" , "-r"}, () => ".", "Specify the root folder if the current executing directory is not a intended folder"));
 
             var getVersionCommand = new Command("get-version", "Gets the current versions used by repositories.")
             {
@@ -18,8 +19,8 @@ namespace gitrelease.cli
             };
 
             getVersionCommand.AddOption(new Option<string>("--platform", () => "all", "Gets version for specific platform."));
-
             getVersionCommand.AddAlias("gv");
+
             rootCommand.AddCommand(getVersionCommand);
 
             var initCommand = new Command("init", "Initialized the repository for the release command.")
@@ -34,40 +35,10 @@ namespace gitrelease.cli
             return rootCommand.Invoke(args);
         }
 
-        private static int GetVersion(string platformName = "all")
+        private static int ReleaseSequence(string root)
         {
             var (flag, releaseManager) = Builder.New()
-                .UseRoot(Directory.GetCurrentDirectory())
-                .Create();
-
-            var releaseManagerFlag = ReleaseManagerFlags.Unknown;
-
-            if (flag == BuilderFlags.Ok)
-            {
-                releaseManagerFlag = releaseManager.Initialize();
-
-                if (releaseManagerFlag == ReleaseManagerFlags.Ok)
-                {
-                    string[] versions = releaseManager.GetVersion(platformName);
-
-                    foreach (var version in versions)
-                    {
-                        Console.WriteLine(version);
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine("No config file found or it is invalid, use release init command to generate a config file");
-            }
-
-            return (int)releaseManagerFlag;
-        }
-
-        private static int ReleaseSequence()
-        {
-            var (flag, releaseManager) = Builder.New()
-                .UseRoot(Directory.GetCurrentDirectory())
+                .UseRoot(root)
                 .Create();
 
             var releaseManagerFlag = ReleaseManagerFlags.Unknown;
@@ -79,6 +50,39 @@ namespace gitrelease.cli
                 if (releaseManagerFlag == ReleaseManagerFlags.Ok)
                 {
                     releaseManagerFlag = releaseManager.Release();
+
+
+                    DumpMessage(releaseManagerFlag);
+                }
+            }
+            else
+            {
+                Console.WriteLine("No config file found or it is invalid, use release init command to generate a config file");
+            }
+
+            return (int)releaseManagerFlag;
+        }
+
+        private static int GetVersion(string platform = "all")
+        {
+            var (flag, releaseManager) = Builder.New()
+                .UseRoot(Directory.GetCurrentDirectory())
+                .Create();
+
+            var releaseManagerFlag = ReleaseManagerFlags.Unknown;
+
+            if (flag == BuilderFlags.Ok)
+            {
+                releaseManagerFlag = releaseManager.Initialize();
+
+                if (releaseManagerFlag == ReleaseManagerFlags.Ok)
+                {
+                    string[] versions = releaseManager.GetVersion(platform);
+
+                    foreach (var version in versions)
+                    {
+                        Console.WriteLine(version);
+                    }
                 }
             }
             else
@@ -114,6 +118,12 @@ namespace gitrelease.cli
             {
                 return ReleaseManagerFlags.Cancelled;
             }
+        }
+
+
+        private static void DumpMessage(ReleaseManagerFlags releaseManagerFlag)
+        {
+            Console.WriteLine(releaseManagerFlag.ToString());
         }
     }
 }

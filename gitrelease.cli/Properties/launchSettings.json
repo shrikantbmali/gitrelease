@@ -1,7 +1,8 @@
 {
   "profiles": {
     "gitrelease.cli": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "--root C:\\Users\\ShrikantMali\\sandbox\\ac\\main"
     }
   }
 }

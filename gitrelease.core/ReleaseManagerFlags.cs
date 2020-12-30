@@ -12,6 +12,8 @@
         InvalidDirectory = -6,
         FileNotFound = -7,
         Cancelled = -8,
-        ConfigFileAlreadyExists = -9
+        ConfigFileAlreadyExists = -9,
+        ToolNotFound = -10,
+        UnableToRollbackChangesDoneByNVGB = -11
     }
 }

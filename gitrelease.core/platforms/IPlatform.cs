@@ -4,7 +4,7 @@
     {
         PlatformType Type { get; }
 
-        ReleaseManagerFlags Release(string version);
+        (ReleaseManagerFlags flag, string[] changedFiles) Release(string version);
 
         string GetVersion();
     }

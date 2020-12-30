@@ -15,18 +15,18 @@ namespace gitrelease.core.platforms
             this.path = path;
         }
 
-        public ReleaseManagerFlags Release(string version)
+        public (ReleaseManagerFlags flag, string[] changedFiles) Release(string version)
         {
             if(!Directory.Exists(this.path))
             {
-                return ReleaseManagerFlags.InvalidDirectory;
+                return (ReleaseManagerFlags.InvalidDirectory, new string[] { });
             }
 
             var plistFilePath = GetPlistFilePath(this.path);
 
             if (!File.Exists(plistFilePath))
             {
-                return ReleaseManagerFlags.FileNotFound;
+                return (ReleaseManagerFlags.FileNotFound, new string[] { });
             }
 
             var rootDict = (NSDictionary)PropertyListParser.Parse(plistFilePath);
@@ -38,7 +38,7 @@ namespace gitrelease.core.platforms
 
             PropertyListParser.SaveAsXml(rootDict, new FileInfo(plistFilePath));
 
-            return ReleaseManagerFlags.Ok;
+            return (ReleaseManagerFlags.Ok, new string[]{plistFilePath});
         }
 
         public string GetVersion()

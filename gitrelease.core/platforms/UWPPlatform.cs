@@ -11,9 +11,9 @@
             this.path = path;
         }
 
-        public ReleaseManagerFlags Release(string version)
+        public (ReleaseManagerFlags flag, string[] changedFiles) Release(string version)
         {
-            return ReleaseManagerFlags.Ok;
+            return (ReleaseManagerFlags.Ok, new string[] { });
         }
 
         public string GetVersion()

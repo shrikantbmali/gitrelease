@@ -8,7 +8,7 @@ namespace gitrelease.core
 {
     internal static class CommandExecutor
     {
-        public static (string output, bool isError) ExecuteCommand(string command, string args)
+        public static (string output, bool isError) ExecuteFile(string command, string args)
         {
             try
             {
@@ -36,7 +36,35 @@ namespace gitrelease.core
             }
             catch (Exception ex)
             {
-                Console.WriteLine();
+                Console.WriteLine(ex);
+                return (string.Empty, true);
+            }
+        }
+
+        public static (string output, bool isError) ExecuteCommand(string command, string args, string workingDirectory)
+        {
+            try
+            {
+                var procStartInfo = new ProcessStartInfo("cmd", "/c " + command + " " + string.Join(' ', args))
+                {
+                    WorkingDirectory = workingDirectory,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                var process = new Process {StartInfo = procStartInfo};
+                process.Start();
+
+                var output = process?.StandardOutput.ReadToEnd();
+                var err = process?.StandardError.ReadToEnd();
+
+                return (string.IsNullOrEmpty(err) ? output : err, !string.IsNullOrEmpty(err));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
                 return (string.Empty, true);
             }
         }

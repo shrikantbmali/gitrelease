@@ -17,12 +17,12 @@ namespace gitrelease.core.platforms
 
         public (ReleaseManagerFlags flag, string[] changedFiles) Release(string version)
         {
-            if (!Directory.Exists(this.path))
+            if (!Directory.Exists(path))
             {
                 return (ReleaseManagerFlags.InvalidDirectory, new string[]{});
             }
 
-            var manifestFilePath = GetManifestFilePath(this.path);
+            var manifestFilePath = GetManifestFilePath(path);
 
             if (!File.Exists(manifestFilePath))
             {
@@ -55,16 +55,16 @@ namespace gitrelease.core.platforms
 
         public string GetVersion()
         {
-            if (!Directory.Exists(this.path))
+            if (!Directory.Exists(path))
             {
-                return $"{this.Type}: manifest not found";
+                return $"{Type}: manifest not found";
             }
 
-            var manifestFilePath = GetManifestFilePath(this.path);
+            var manifestFilePath = GetManifestFilePath(path);
 
             if (!File.Exists(manifestFilePath))
             {
-                return $"{this.Type}: manifest not found";
+                return $"{Type}: manifest not found";
             }
 
             var xml = LoadManifest(manifestFilePath);

@@ -14,6 +14,9 @@
         Cancelled = -8,
         ConfigFileAlreadyExists = -9,
         ToolNotFound = -10,
-        UnableToRollbackChangesDoneByNVGB = -11
+        UnableToRollbackChangesDoneByNVGB = -11,
+        TagCreationFailed = -12,
+        ChangelogCreationFailed = -13,
+        PackageJsonVersionUpdateFailed = -14
     }
 }

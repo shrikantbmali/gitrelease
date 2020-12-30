@@ -77,7 +77,7 @@ namespace gitrelease.cli
 
                 if (releaseManagerFlag == ReleaseManagerFlags.Ok)
                 {
-                    string[] versions = releaseManager.GetVersion(platform);
+                    var versions = releaseManager.GetVersion(platform);
 
                     foreach (var version in versions)
                     {

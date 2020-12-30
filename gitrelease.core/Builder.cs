@@ -23,7 +23,7 @@ namespace gitrelease.core
 
         public (BuilderFlags Flag, IReleaseManager ReleaseManager) Create()
         {
-            return (Flag: BuilderFlags.Ok, ReleaseManager: new ReleaseManager(this.root));
+            return (Flag: BuilderFlags.Ok, ReleaseManager: new ReleaseManager(root));
         }
 
         public IIniterBuilder Initer()
@@ -60,13 +60,13 @@ namespace gitrelease.core
 
         public IIniterBuilder GetPlatform(Func<string, string?> func)
         {
-            this.platformGetter = func;
+            platformGetter = func;
             return this;
         }
 
         public IIniterBuilder GetPlatformPath(Func<string, string?> func)
         {
-            this.pathgetter = func;
+            pathgetter = func;
             return this;
         }
 
@@ -78,7 +78,7 @@ namespace gitrelease.core
 
         public IIniter Create()
         {
-            return new Initer(this.root, this.platformGetter, pathgetter);
+            return new Initer(root, platformGetter, pathgetter);
         }
     }
 }

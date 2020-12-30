@@ -3,9 +3,13 @@ using LibGit2Sharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace gitrelease.core
 {
@@ -16,17 +20,17 @@ namespace gitrelease.core
 
         public ReleaseManager(string rootDirectory)
         {
-            this._rootDirectory = rootDirectory;
+            _rootDirectory = rootDirectory;
         }
 
         public ReleaseManagerFlags Initialize()
         {
-            if (!Directory.Exists(this._rootDirectory))
+            if (!Directory.Exists(_rootDirectory))
             {
                 return ReleaseManagerFlags.InvalidRootDir;
             }
 
-            if (!ConfigFileExists(this._rootDirectory, out string configFilePath))
+            if (!ConfigFileExists(_rootDirectory, out var configFilePath))
             {
                 return ReleaseManagerFlags.ConfigurationNotFound;
             }
@@ -36,9 +40,9 @@ namespace gitrelease.core
                 return ReleaseManagerFlags.InvalidFile;
             }
 
-            this._platforms = CreatePlatforms(config.Platforms);
+            _platforms = CreatePlatforms(config.Platforms);
 
-            if (this._platforms.Any(platform => platform.Value.Type == PlatformType.INVALID))
+            if (_platforms.Any(platform => platform.Value.Type == PlatformType.INVALID))
             {
                 return ReleaseManagerFlags.InvalidPlatform;
             }
@@ -74,16 +78,26 @@ namespace gitrelease.core
                 var version = $"{releaseMessage.NewBranch.Version}.{releaseMessage.NewBranch.Commit.Substring(0, 10)}";
 
                 IEnumerable<(ReleaseManagerFlags flag, string[] changedFiles)> release =
-                    this._platforms.Select(platform => platform.Value.Release(version)).ToArray();
+                    _platforms.Select(platform => platform.Value.Release(version)).ToArray();
 
                 result = release.FirstOrDefault(res => res.flag != ReleaseManagerFlags.Ok).flag;
 
                 if (result == ReleaseManagerFlags.Ok)
                 {
-                    result = Stage(repo);
+                    result = CreateATag(repo, version);
+                    
                     if (result == ReleaseManagerFlags.Ok)
                     {
-                        result = Commit(repo, version);
+                        result = CreateChangeLog(version);
+
+                        if (result == ReleaseManagerFlags.Ok)
+                        {
+                            result = Stage(repo);
+                            if (result == ReleaseManagerFlags.Ok)
+                            {
+                                result = Commit(repo, version);
+                            }
+                        }
                     }
                 }
             }
@@ -103,11 +117,65 @@ namespace gitrelease.core
             return result;
         }
 
+        private ReleaseManagerFlags CreateChangeLog(string version)
+        {
+            try
+            {
+                var result = UpdateJsonPackageVersion(version);
+
+                if (result != ReleaseManagerFlags.Ok)
+                    return result;
+
+                var (_, isError) = CommandExecutor.ExecuteCommand("changelog", "generate", _rootDirectory);
+
+                return isError ? ReleaseManagerFlags.ChangelogCreationFailed : ReleaseManagerFlags.Ok;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return ReleaseManagerFlags.ChangelogCreationFailed;
+            }
+        }
+
+        private ReleaseManagerFlags UpdateJsonPackageVersion(string version)
+        {
+            try
+            {
+                var combine = Path.Combine(_rootDirectory, "package.json");
+                var json = JObject.Parse(File.ReadAllText(combine));
+                json["version"] = version;
+
+                var js = JsonConvert.SerializeObject(json, Formatting.Indented);
+                File.WriteAllText(combine, js);
+
+                return ReleaseManagerFlags.Ok;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return ReleaseManagerFlags.PackageJsonVersionUpdateFailed;
+            }
+        }
+
+        private static ReleaseManagerFlags CreateATag(IRepository repo, string version)
+        {
+            try
+            {
+                repo.ApplyTag($"v{version}");
+                return ReleaseManagerFlags.Ok;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return ReleaseManagerFlags.TagCreationFailed;
+            }
+        }
+
         private (string output, bool isError) ExecutePrepareRelease()
         {
             var command = Path.Combine(_rootDirectory, @".\nbgv.exe");
 
-            return CommandExecutor.ExecuteCommand(command, $"prepare-release -p {_rootDirectory} -f json");
+            return CommandExecutor.ExecuteFile(command, $"prepare-release -p {_rootDirectory} -f json");
         }
 
         private static ReleaseManagerFlags DeleteBranchAndRollbackCommitsDone(IRepository repo, Commit head, ReleaseMessage releaseMessage)
@@ -129,8 +197,8 @@ namespace gitrelease.core
         public string[] GetVersion(string platformName)
         {
             return platformName == "all"
-                ? this._platforms.Select(p => p.Value.GetVersion()).ToArray()
-                : new[] { this._platforms[platformName].GetVersion() };
+                ? _platforms.Select(p => p.Value.GetVersion()).ToArray()
+                : new[] { _platforms[platformName].GetVersion() };
         }
 
         private static bool ConfigFileExists(string rootPath, out string filePath)
@@ -204,7 +272,7 @@ namespace gitrelease.core
 
             try
             {
-                repo = new Repository(this._rootDirectory);
+                repo = new Repository(_rootDirectory);
 
                 return func(repo);
             }
@@ -225,7 +293,7 @@ namespace gitrelease.core
 
             foreach (var platform in platforms)
             {
-                var absolutePath = Path.Combine(this._rootDirectory, platform.Path);
+                var absolutePath = Path.Combine(_rootDirectory, platform.Path);
 
                 switch (platform.Name?.ToLower())
                 {

@@ -17,12 +17,12 @@ namespace gitrelease.core.platforms
 
         public (ReleaseManagerFlags flag, string[] changedFiles) Release(string version)
         {
-            if(!Directory.Exists(this.path))
+            if(!Directory.Exists(path))
             {
                 return (ReleaseManagerFlags.InvalidDirectory, new string[] { });
             }
 
-            var plistFilePath = GetPlistFilePath(this.path);
+            var plistFilePath = GetPlistFilePath(path);
 
             if (!File.Exists(plistFilePath))
             {
@@ -43,12 +43,12 @@ namespace gitrelease.core.platforms
 
         public string GetVersion()
         {
-            if (!Directory.Exists(this.path))
+            if (!Directory.Exists(path))
             {
                 return "Invalid directory";
             }
 
-            var plistFilePath = GetPlistFilePath(this.path);
+            var plistFilePath = GetPlistFilePath(path);
 
             if (!File.Exists(plistFilePath))
             {

@@ -37,19 +37,19 @@ namespace gitrelease.core
                     new Platform
                     {
                         Name = "ios",
-                        Path = this._pathGetter("Provide the path for iOS project folder.")
+                        Path = _pathGetter("Provide the path for iOS project folder.")
 
                     },
                     new Platform
                     {
                         Name = "droid",
-                        Path = this._pathGetter("Provide the path for Droid project folder.")
+                        Path = _pathGetter("Provide the path for Droid project folder.")
 
                     },
                     new Platform
                     {
                         Name = "uwp",
-                        Path = this._pathGetter("Provide the path for UWP project folder.")
+                        Path = _pathGetter("Provide the path for UWP project folder.")
 
                     },
                 }

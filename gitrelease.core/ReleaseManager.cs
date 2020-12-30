@@ -89,6 +89,7 @@ namespace gitrelease.core
             }
             catch (Exception ex)
             {
+                result = ReleaseManagerFlags.Unknown;
                 Console.WriteLine(ex);
             }
             finally

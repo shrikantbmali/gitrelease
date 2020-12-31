@@ -17,6 +17,7 @@
         UnableToRollbackChangesDoneByNVGB = -11,
         TagCreationFailed = -12,
         ChangelogCreationFailed = -13,
-        PackageJsonVersionUpdateFailed = -14
+        PackageJsonVersionUpdateFailed = -14,
+        InvalidUWPPackageFile = -15
     }
 }

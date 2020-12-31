@@ -25,8 +25,13 @@ namespace gitrelease.cli
 
             var initCommand = new Command("init", "Initialized the repository for the release command.")
             {
-                Handler = CommandHandler.Create(() => Init())
+                Handler = CommandHandler.Create<string>(Init)
             };
+
+            initCommand.AddOption(
+                new Option<string>(new[] {"--root", "-r"}, () => ".",
+                    "Specify the root folder if the current executing directory is not a intended folder")
+                );
             
             rootCommand.AddCommand(initCommand);
 
@@ -38,7 +43,7 @@ namespace gitrelease.cli
         private static int ReleaseSequence(string root)
         {
             var (flag, releaseManager) = Builder.New()
-                .UseRoot(root)
+                .UseRoot(root == "." ? Directory.GetCurrentDirectory() : root)
                 .Create();
 
             var releaseManagerFlag = ReleaseManagerFlags.Unknown;
@@ -93,13 +98,13 @@ namespace gitrelease.cli
             return (int)releaseManagerFlag;
         }
 
-        private static ReleaseManagerFlags Init()
+        private static int Init(string root)
         {
             try
             {
                 var initer = Builder.New()
                     .Initer()
-                    .UseRoot(Directory.GetCurrentDirectory())
+                    .UseRoot(root == "." ? Directory.GetCurrentDirectory() : root)
                     .GetPlatform(p =>
                     {
                         Console.WriteLine(p);
@@ -112,11 +117,11 @@ namespace gitrelease.cli
                     })
                     .Create();
 
-                return initer.Init();
+                return (int)initer.Init();
             }
             catch (OperationCanceledException)
             {
-                return ReleaseManagerFlags.Cancelled;
+                return (int)ReleaseManagerFlags.Cancelled;
             }
         }
 

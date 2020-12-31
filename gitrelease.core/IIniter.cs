@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using LibGit2Sharp;
 
 namespace gitrelease.core
 {
@@ -23,9 +24,14 @@ namespace gitrelease.core
 
         public ReleaseManagerFlags Init()
         {
-            var filePath = Path.Combine(_root, ConfigFile.FixName);
+            var initResult = InstallTools();
 
-            if (File.Exists(filePath))
+            if (initResult != ReleaseManagerFlags.Ok)
+                return initResult;
+                
+            var configFilePath = Path.Combine(_root, ConfigFile.FixName);
+
+            if (File.Exists(configFilePath))
             {
                 return ReleaseManagerFlags.ConfigFileAlreadyExists;
             }
@@ -55,7 +61,48 @@ namespace gitrelease.core
                 }
             };
 
-            return configFile.Save(filePath) ? ReleaseManagerFlags.Ok : ReleaseManagerFlags.Unknown;
+            if (configFile.Save(configFilePath))
+            {
+                var command = Path.Combine(_root, @".\nbgv.exe");
+
+                var result = CommandExecutor.ExecuteFile(command, $"install -p {_root}");
+
+                if (result.isError)
+                    return ReleaseManagerFlags.FailedToInstallNBGV;
+
+                using var repository = new Repository(_root);
+                repository.Index.Add(Path.GetFileName(configFilePath));
+                repository.Index.Add("package.json");
+                repository.Index.Add("package-lock.json");
+                repository.Index.Write();
+
+                return ReleaseManagerFlags.Ok;
+            }
+            else
+            {
+                return ReleaseManagerFlags.Unknown;
+            }
+        }
+
+        private ReleaseManagerFlags InstallTools()
+        {
+            var (output, isError) = CommandExecutor.ExecuteCommand("dotnet", $"tool install --tool-path {_root} nbgv --version 3.3.37", _root);
+
+            if (isError)
+            {
+                Console.WriteLine(output);
+                return ReleaseManagerFlags.FailedToInstallNBGV;
+            }
+
+            (output, isError) = CommandExecutor.ExecuteCommand("npm install", "auto-changelog", _root);
+
+            if (isError)
+            {
+                Console.WriteLine(output);
+                return ReleaseManagerFlags.FailedToInstallAutoChangelLog;
+            }
+
+            return ReleaseManagerFlags.Ok;
         }
     }
 }

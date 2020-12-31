@@ -18,6 +18,9 @@
         TagCreationFailed = -12,
         ChangelogCreationFailed = -13,
         PackageJsonVersionUpdateFailed = -14,
-        InvalidUWPPackageFile = -15
+        InvalidUWPPackageFile = -15,
+        FailedToInstall = -16,
+        FailedToInstallNBGV = -17,
+        FailedToInstallAutoChangelLog = -18
     }
 }

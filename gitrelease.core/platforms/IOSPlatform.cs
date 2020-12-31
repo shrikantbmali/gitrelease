@@ -31,7 +31,14 @@ namespace gitrelease.core.platforms
 
             var rootDict = (NSDictionary)PropertyListParser.Parse(plistFilePath);
 
-            if (rootDict?["CFBundleShortVersionString"] is NSString nsString)
+            if(rootDict == null)
+                return (ReleaseManagerFlags.FileNotFound, new string[] { });
+
+            if (!rootDict.ContainsKey("CFBundleShortVersionString"))
+            {
+                rootDict.Add("CFBundleShortVersionString", version);
+            }
+            else if (rootDict["CFBundleShortVersionString"] is NSString nsString)
             {
                 nsString.Content = version;
             }

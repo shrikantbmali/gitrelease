@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace gitrelease.core
 {
     internal struct ConfigFile
     {
-        [JsonPropertyName("platforms")]
+        [JsonProperty("platforms")]
         public IEnumerable<Platform> Platforms { get; set; }
 
         [JsonIgnore]
@@ -17,10 +16,10 @@ namespace gitrelease.core
 
     internal struct Platform
     {
-        [JsonPropertyName("name")]
+        [JsonProperty("name")]
         public string Name { get; set; }
 
-        [JsonPropertyName("path")]
+        [JsonProperty("path")]
         public string Path { get; set; }
     }
 
@@ -30,17 +29,12 @@ namespace gitrelease.core
         {
             try
             {
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                };
-
-                JsonSerializer.Serialize(
-                    new Utf8JsonWriter(new FileStream(filePath, FileMode.CreateNew)),
-                    file, options);
+                var js = JsonConvert.SerializeObject(file, Formatting.Indented);
+                File.WriteAllText(filePath, js);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 return false;
             }
 

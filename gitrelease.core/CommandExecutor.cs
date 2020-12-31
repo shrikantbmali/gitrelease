@@ -57,6 +57,8 @@ namespace gitrelease.core
                 var process = new Process {StartInfo = procStartInfo};
                 process.Start();
 
+                process.WaitForExit();
+
                 var output = process?.StandardOutput.ReadToEnd();
                 var err = process?.StandardError.ReadToEnd();
 

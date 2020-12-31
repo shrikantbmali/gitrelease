@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace gitrelease.core
 {
@@ -321,7 +320,7 @@ namespace gitrelease.core
             file = default;
             try
             {
-                file = JsonSerializer.Deserialize<ConfigFile>(File.ReadAllText(filePath));
+                file = JsonConvert.DeserializeObject<ConfigFile>(File.ReadAllText(filePath));
             }
             catch (Exception)
             {

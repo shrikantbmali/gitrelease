@@ -21,6 +21,11 @@
         InvalidUWPPackageFile = -15,
         FailedToInstall = -16,
         FailedToInstallNBGV = -17,
-        FailedToInstallAutoChangelLog = -18
+        FailedToInstallAutoChangelLog = -18,
+        RepoNotInitializedForReleaseProcess = -19,
+        InstallNpm,
+        AlreadyInitialized,
+        InvalidConfigFile,
+        InvalidAndroidManifestFileMissingAttributes
     }
 }

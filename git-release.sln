@@ -1,16 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gitrelease.core", "gitrelease.core\gitrelease.core.csproj", "{D1FFEB79-7B03-47B4-A62B-4276F10AE449}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gitrelease.core", "gitrelease.core\gitrelease.core.csproj", "{D1FFEB79-7B03-47B4-A62B-4276F10AE449}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gitrelease.cli", "gitrelease.cli\gitrelease.cli.csproj", "{362B71EC-8251-4C43-938F-8FF34E0A7D80}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gitrelease.cli", "gitrelease.cli\gitrelease.cli.csproj", "{362B71EC-8251-4C43-938F-8FF34E0A7D80}"
 EndProject
 Global
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
@@ -44,5 +41,11 @@ Global
 		{362B71EC-8251-4C43-938F-8FF34E0A7D80}.Release|x64.Build.0 = Release|Any CPU
 		{362B71EC-8251-4C43-938F-8FF34E0A7D80}.Release|x86.ActiveCfg = Release|Any CPU
 		{362B71EC-8251-4C43-938F-8FF34E0A7D80}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CF075222-6A2E-495D-AAA3-EEC3CF5E6B8F}
 	EndGlobalSection
 EndGlobal

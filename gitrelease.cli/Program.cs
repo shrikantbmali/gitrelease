@@ -8,123 +8,79 @@ namespace gitrelease.cli
 {
     internal static class Program
     {
-        static int Main(string[] args)
+        private static int Main(string[] args)
         {
-            var rootCommand = new RootCommand { Handler = CommandHandler.Create<string>(ReleaseSequence) };
-            rootCommand.AddOption(new Option<string>(new []{ "--root" , "-r"}, () => ".", "Specify the root folder if the current executing directory is not a intended folder"));
+            var rootCommand = new RootCommand { Handler = CommandHandler.Create<string, ReleaseType>(ReleaseSequence) };
+            rootCommand.AddOption(
+                new Option<string>(
+                    new [] { "--root" , "-r"},
+                    Directory.GetCurrentDirectory,
+                    "Specify the root folder if the current executing directory is not a intended folder"));
+
+            rootCommand.AddOption(new Option<ReleaseType>(
+                new[] {"--bump", "-b"},
+                "Specifies whether to update Major, Minor or Patch version")
+            {
+                IsRequired = true
+            });
 
             var getVersionCommand = new Command("get-version", "Gets the current versions used by repositories.")
             {
-                Handler = CommandHandler.Create<string>(GetVersion),
+                Handler = CommandHandler.Create<string, string>(GetVersion),
             };
 
-            getVersionCommand.AddOption(new Option<string>("--platform", () => "all", "Gets version for specific platform."));
             getVersionCommand.AddAlias("gv");
 
+            getVersionCommand.AddOption(
+                new Option<string>(
+                    new [] { "--platform", "-p"},
+                    () => "all",
+                    "Gets version for specific platform."));
+
+            getVersionCommand.AddOption(
+                new Option<string>(
+                    new [] { "--root", "-r"},
+                    Directory.GetCurrentDirectory,
+                    "Specify the root folder if the current executing directory is not a intended folder"));
+
             rootCommand.AddCommand(getVersionCommand);
-
-            var initCommand = new Command("init", "Initialized the repository for the release command.")
-            {
-                Handler = CommandHandler.Create<string>(Init)
-            };
-
-            initCommand.AddOption(
-                new Option<string>(new[] {"--root", "-r"}, () => ".",
-                    "Specify the root folder if the current executing directory is not a intended folder")
-                );
-            
-            rootCommand.AddCommand(initCommand);
 
             rootCommand.Parse(args);
 
             return rootCommand.Invoke(args);
         }
 
-        private static int ReleaseSequence(string root)
+        private static int ReleaseSequence(string root, ReleaseType bump)
         {
-            var (flag, releaseManager) = Builder.New()
-                .UseRoot(root == "." ? Directory.GetCurrentDirectory() : root)
-                .Create();
+            var manager = new ReleaseManager(root == "." ? Directory.GetCurrentDirectory() : root);
 
-            var releaseManagerFlag = ReleaseManagerFlags.Unknown;
+            manager.Initialize();
 
-            if (flag == BuilderFlags.Ok)
+            var releaseManagerFlags = manager.Release(new ReleaseChoices()
             {
-                releaseManagerFlag = releaseManager.Initialize();
+                ReleaseType = bump
+            });
 
-                if (releaseManagerFlag == ReleaseManagerFlags.Ok)
-                {
-                    releaseManagerFlag = releaseManager.Release();
+            DumpMessage(releaseManagerFlags);
 
-
-                    DumpMessage(releaseManagerFlag);
-                }
-            }
-            else
-            {
-                Console.WriteLine("No config file found or it is invalid, use release init command to generate a config file");
-            }
-
-            return (int)releaseManagerFlag;
+            return (int)releaseManagerFlags;
         }
 
-        private static int GetVersion(string platform = "all")
+        private static int GetVersion(string root, string platform = "all")
         {
-            var (flag, releaseManager) = Builder.New()
-                .UseRoot(Directory.GetCurrentDirectory())
-                .Create();
+            var manager = new ReleaseManager(root);
 
-            var releaseManagerFlag = ReleaseManagerFlags.Unknown;
+            manager.Initialize();
 
-            if (flag == BuilderFlags.Ok)
+            var versions = manager.GetVersion(platform);
+
+            foreach (var version in versions)
             {
-                releaseManagerFlag = releaseManager.Initialize();
-
-                if (releaseManagerFlag == ReleaseManagerFlags.Ok)
-                {
-                    var versions = releaseManager.GetVersion(platform);
-
-                    foreach (var version in versions)
-                    {
-                        Console.WriteLine(version);
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine("No config file found or it is invalid, use release init command to generate a config file");
+                Console.WriteLine(version);
             }
 
-            return (int)releaseManagerFlag;
+            return 0;
         }
-
-        private static int Init(string root)
-        {
-            try
-            {
-                var initer = Builder.New()
-                    .Initer()
-                    .UseRoot(root == "." ? Directory.GetCurrentDirectory() : root)
-                    .GetPlatform(p =>
-                    {
-                        Console.WriteLine(p);
-                        return Console.ReadLine();
-                    })
-                    .GetPlatformPath(p =>
-                    {
-                        Console.WriteLine(p);
-                        return Console.ReadLine();
-                    })
-                    .Create();
-
-                return (int)initer.Init();
-            }
-            catch (OperationCanceledException)
-            {
-                return (int)ReleaseManagerFlags.Cancelled;
-            }
-        }
-
 
         private static void DumpMessage(ReleaseManagerFlags releaseManagerFlag)
         {

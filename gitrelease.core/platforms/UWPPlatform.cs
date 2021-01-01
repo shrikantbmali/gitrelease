@@ -16,7 +16,7 @@ namespace gitrelease.core.platforms
             this.path = path;
         }
 
-        public (ReleaseManagerFlags flag, string[] changedFiles) Release(string version)
+        public (ReleaseManagerFlags flag, string[] changedFiles) Release(GitVersion version)
         {
             try
             {
@@ -40,7 +40,7 @@ namespace gitrelease.core.platforms
                 var versionNode = RetrieveVersionNode(xml);
 
                 if (versionNode != null)
-                    versionNode.InnerText = version;
+                    versionNode.InnerText = version.ToMajorMinorPatch();
                 else return (ReleaseManagerFlags.InvalidUWPPackageFile, new string[] { });
 
                 xml?.Save(manifestFilePath);

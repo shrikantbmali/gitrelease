@@ -10,7 +10,7 @@ namespace gitrelease.core.platforms
         {
         }
 
-        public (ReleaseManagerFlags flag, string[] changedFiles) Release(string version)
+        public (ReleaseManagerFlags flag, string[] changedFiles) Release(GitVersion version)
         {
             throw new NotSupportedException();
         }

@@ -4,7 +4,7 @@
     {
         PlatformType Type { get; }
 
-        (ReleaseManagerFlags flag, string[] changedFiles) Release(string version);
+        (ReleaseManagerFlags flag, string[] changedFiles) Release(GitVersion version);
 
         string GetVersion();
     }

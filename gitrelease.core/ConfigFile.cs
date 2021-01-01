@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace gitrelease.core
 {
-    internal struct ConfigFile
+    internal class ConfigFile
     {
         [JsonProperty("platforms")]
         public IEnumerable<Platform> Platforms { get; set; }
@@ -39,6 +39,22 @@ namespace gitrelease.core
             }
 
             return true;
+        }
+
+        public static ConfigFile ParseFile(string filePath)
+        {
+            ConfigFile file = null;
+
+            try
+            {
+                file = JsonConvert.DeserializeObject<ConfigFile>(File.ReadAllText(filePath));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return file;
         }
     }
 }

@@ -42,89 +42,100 @@ namespace gitrelease.cli
 
         private static int ReleaseSequence(string root)
         {
-            var (flag, releaseManager) = Builder.New()
-                .UseRoot(root == "." ? Directory.GetCurrentDirectory() : root)
-                .Create();
+            var manager = new ReleaseManager(root == "." ? Directory.GetCurrentDirectory() : root);
 
-            var releaseManagerFlag = ReleaseManagerFlags.Unknown;
+            manager.Initialize();
 
-            if (flag == BuilderFlags.Ok)
-            {
-                releaseManagerFlag = releaseManager.Initialize();
+            var releaseManagerFlags = manager.Release(new ReleaseChoices());
 
-                if (releaseManagerFlag == ReleaseManagerFlags.Ok)
-                {
-                    releaseManagerFlag = releaseManager.Release();
+            DumpMessage(releaseManagerFlags);
 
 
-                    DumpMessage(releaseManagerFlag);
-                }
-            }
-            else
-            {
-                Console.WriteLine("No config file found or it is invalid, use release init command to generate a config file");
-            }
+            //var (flag, releaseManager) = Builder.New()
+            //    .UseRoot(root == "." ? Directory.GetCurrentDirectory() : root)
+            //    .Create();
 
-            return (int)releaseManagerFlag;
+            //var releaseManagerFlag = ReleaseManagerFlags.Unknown;
+
+            //if (flag == BuilderFlags.Ok)
+            //{
+            //    releaseManagerFlag = releaseManager.Initialize();
+
+            //    if (releaseManagerFlag == ReleaseManagerFlags.Ok)
+            //    {
+            //        releaseManagerFlag = releaseManager.Release();
+
+            //        DumpMessage(releaseManagerFlag);
+            //    }
+            //}
+            //else
+            //{
+            //    Console.WriteLine("No config file found or it is invalid, use release init command to generate a config file");
+            //}
+
+            return (int)releaseManagerFlags;
         }
 
         private static int GetVersion(string platform = "all")
         {
-            var (flag, releaseManager) = Builder.New()
-                .UseRoot(Directory.GetCurrentDirectory())
-                .Create();
+            //var (flag, releaseManager) = Builder.New()
+            //    .UseRoot(Directory.GetCurrentDirectory())
+            //    .Create();
 
-            var releaseManagerFlag = ReleaseManagerFlags.Unknown;
+            //var releaseManagerFlag = ReleaseManagerFlags.Unknown;
 
-            if (flag == BuilderFlags.Ok)
-            {
-                releaseManagerFlag = releaseManager.Initialize();
+            //if (flag == BuilderFlags.Ok)
+            //{
+            //    releaseManagerFlag = releaseManager.Initialize();
 
-                if (releaseManagerFlag == ReleaseManagerFlags.Ok)
-                {
-                    var versions = releaseManager.GetVersion(platform);
+            //    if (releaseManagerFlag == ReleaseManagerFlags.Ok)
+            //    {
+            //        var versions = releaseManager.GetVersion(platform);
 
-                    foreach (var version in versions)
-                    {
-                        Console.WriteLine(version);
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine("No config file found or it is invalid, use release init command to generate a config file");
-            }
+            //        foreach (var version in versions)
+            //        {
+            //            Console.WriteLine(version);
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    Console.WriteLine("No config file found or it is invalid, use release init command to generate a config file");
+            //}
 
-            return (int)releaseManagerFlag;
+            //return (int)releaseManagerFlag;
+
+            return -1;
         }
 
         private static int Init(string root)
         {
-            try
-            {
-                var initer = Builder.New()
-                    .Initer()
-                    .UseRoot(root == "." ? Directory.GetCurrentDirectory() : root)
-                    .GetPlatform(p =>
-                    {
-                        Console.WriteLine(p);
-                        return Console.ReadLine();
-                    })
-                    .GetPlatformPath(p =>
-                    {
-                        Console.WriteLine(p);
-                        return Console.ReadLine();
-                    })
-                    .Create();
+            //try
+            //{
+            //    var initer = Builder.New()
+            //        .Initer()
+            //        .UseRoot(root == "." ? Directory.GetCurrentDirectory() : root)
+            //        .GetPlatform(p =>
+            //        {
+            //            Console.WriteLine(p);
+            //            return Console.ReadLine();
+            //        })
+            //        .GetPlatformPath(p =>
+            //        {
+            //            Console.WriteLine(p);
+            //            return Console.ReadLine();
+            //        })
+            //        .Create();
 
-                return (int)initer.Init();
-            }
-            catch (OperationCanceledException)
-            {
-                return (int)ReleaseManagerFlags.Cancelled;
-            }
+            //    return (int)initer.Init();
+            //}
+            //catch (OperationCanceledException)
+            //{
+            //    return (int)ReleaseManagerFlags.Cancelled;
+            //}
+
+            return -1;
         }
-
 
         private static void DumpMessage(ReleaseManagerFlags releaseManagerFlag)
         {

@@ -1,234 +1,125 @@
-﻿using gitrelease.core.platforms;
-using LibGit2Sharp;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using gitrelease.core.platforms;
+using LibGit2Sharp;
 
 namespace gitrelease.core
 {
-    internal class ReleaseManager : IReleaseManager
+    public class ReleaseManager
     {
-        private ReadOnlyDictionary<string, IPlatform> _platforms;
-        private readonly string _rootDirectory;
+        private readonly string _rootDir;
+        private Package _package;
 
-        public ReleaseManager(string rootDirectory)
+        public ReleaseManager(string rootDir)
         {
-            _rootDirectory = rootDirectory;
+            _rootDir = rootDir;
         }
 
         public ReleaseManagerFlags Initialize()
         {
-            if (!Directory.Exists(_rootDirectory))
+            if (!Directory.Exists(_rootDir))
             {
-                return ReleaseManagerFlags.InvalidRootDir;
+                return ReleaseManagerFlags.InvalidDirectory;
             }
 
-            if (!ConfigFileExists(_rootDirectory, out var configFilePath))
+            if (_package != null)
             {
-                return ReleaseManagerFlags.ConfigurationNotFound;
-            }
-
-            if (!TryParseFile(configFilePath, out var config))
-            {
-                return ReleaseManagerFlags.InvalidFile;
-            }
-
-            _platforms = CreatePlatforms(config.Platforms);
-
-            if (_platforms.Any(platform => platform.Value.Type == PlatformType.INVALID))
-            {
-                return ReleaseManagerFlags.InvalidPlatform;
-            }
-
-            return ReleaseManagerFlags.Ok;
-        }
-
-        public ReleaseManagerFlags Release()
-        {
-            return Transaction(repo => GitSanity(repo, PrepareRelease), ReleaseManagerFlags.Unknown);
-        }
-
-        private ReleaseManagerFlags PrepareRelease(IRepository repo)
-        {
-            var head = repo.Head;
-
-            var result = ReleaseManagerFlags.Unknown;
-
-            try
-            {
-                var (output, isError) = ExecutePrepareRelease();
-
-                if (isError)
-                    return ReleaseManagerFlags.ToolNotFound;
-
-                var releaseMessage = ReleaseMessage.FromJson(output);
-
-                result = DeleteBranchAndRollbackCommitsDone(repo, head.Tip, releaseMessage);
-
-                if (result != ReleaseManagerFlags.Ok)
-                    return result;
-
-                var version = $"{releaseMessage.NewBranch.Version}.{releaseMessage.NewBranch.Commit.Substring(0, 10)}";
-
-                IEnumerable<(ReleaseManagerFlags flag, string[] changedFiles)> release =
-                    _platforms.Select(platform => platform.Value.Release(version)).ToArray();
-
-                result = release.FirstOrDefault(res => res.flag != ReleaseManagerFlags.Ok).flag;
-
-                if (result == ReleaseManagerFlags.Ok)
-                {
-                    result = CreateATag(repo, version);
-                    
-                    if (result == ReleaseManagerFlags.Ok)
-                    {
-                        result = CreateChangeLog(version);
-
-                        if (result == ReleaseManagerFlags.Ok)
-                        {
-                            result = Stage(repo);
-                            if (result == ReleaseManagerFlags.Ok)
-                            {
-                                result = Commit(repo, version);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                result = ReleaseManagerFlags.Unknown;
-                Console.WriteLine(ex);
-            }
-            finally
-            {
-                if (result != ReleaseManagerFlags.Ok)
-                {
-                    repo.Reset(ResetMode.Hard, head.Tip);
-                }
-            }
+                return ReleaseManagerFlags.AlreadyInitialized;
+            } 
             
-            return result;
-        }
-
-        private ReleaseManagerFlags CreateChangeLog(string version)
-        {
-            try
-            {
-                var result = UpdateJsonPackageVersion(version);
-
-                if (result != ReleaseManagerFlags.Ok)
-                    return result;
-
-                var (_, isError) = CommandExecutor.ExecuteCommand("changelog", "generate", _rootDirectory);
-
-                return isError ? ReleaseManagerFlags.ChangelogCreationFailed : ReleaseManagerFlags.Ok;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                return ReleaseManagerFlags.ChangelogCreationFailed;
-            }
-        }
-
-        private ReleaseManagerFlags UpdateJsonPackageVersion(string version)
-        {
-            try
-            {
-                var combine = Path.Combine(_rootDirectory, "package.json");
-                var json = JObject.Parse(File.ReadAllText(combine));
-                json["version"] = version;
-
-                var js = JsonConvert.SerializeObject(json, Formatting.Indented);
-                File.WriteAllText(combine, js);
-
-                return ReleaseManagerFlags.Ok;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                return ReleaseManagerFlags.PackageJsonVersionUpdateFailed;
-            }
-        }
-
-        private static ReleaseManagerFlags CreateATag(IRepository repo, string version)
-        {
-            try
-            {
-                repo.ApplyTag($"v{version}");
-                return ReleaseManagerFlags.Ok;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return ReleaseManagerFlags.TagCreationFailed;
-            }
-        }
-
-        private (string output, bool isError) ExecutePrepareRelease()
-        {
-            var command = Path.Combine(_rootDirectory, @".\nbgv.exe");
-
-            return CommandExecutor.ExecuteFile(command, $"prepare-release -p {_rootDirectory} -f json");
-        }
-
-        private static ReleaseManagerFlags DeleteBranchAndRollbackCommitsDone(IRepository repo, Commit head, ReleaseMessage releaseMessage)
-        {
-            try
-            {
-                repo.Branches.Remove(releaseMessage.NewBranch.Name);
-                repo.Reset(ResetMode.Soft, head);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return ReleaseManagerFlags.UnableToRollbackChangesDoneByNVGB;
-            }
-
+            _package = new Package(_rootDir);
+            
             return ReleaseManagerFlags.Ok;
         }
 
-        public string[] GetVersion(string platformName)
+        public ReleaseManagerFlags Release(ReleaseChoices releaseChoices)
         {
-            return platformName == "all"
-                ? _platforms.Select(p => p.Value.GetVersion()).ToArray()
-                : new[] { _platforms[platformName].GetVersion() };
-        }
-
-        private static bool ConfigFileExists(string rootPath, out string filePath)
-        {
-            filePath = Path.Combine(rootPath, ConfigFile.FixName);
-            return File.Exists(filePath);
-        }
-
-        private static ReleaseManagerFlags GitSanity(Repository repo, Func<Repository, ReleaseManagerFlags> func)
-        {
-            var head = repo.Head;
-
-            try
+            return ExecuteSafe(() =>
             {
-                var status = repo.RetrieveStatus(new StatusOptions());
+                return ExecuteRepoSafe(repo =>
+                {
+                    var validityFlag = IsRepoReadyForRelease(repo);
 
-                return !status.IsDirty ? func(repo) : ReleaseManagerFlags.DirtyRepo;
-            }
-            catch (Exception ex)
-            {
-                repo.Reset(ResetMode.Hard, head.Tip);
-                Console.WriteLine(ex);
-            }
+                    if (validityFlag != ReleaseManagerFlags.Ok)
+                        return validityFlag;
 
-            return ReleaseManagerFlags.Unknown;
+                    var config = _package.GetConfig();
+
+                    if (config == null)
+                        return ReleaseManagerFlags.InvalidConfigFile;
+
+                    return Release(repo, config, releaseChoices);
+                });
+            });
         }
 
-        private static ReleaseManagerFlags Commit(IRepository repo, string version)
+        private ReleaseManagerFlags Release(IRepository repo, ConfigFile configFile, ReleaseChoices releaseChoices)
         {
+            var version = GetCurrentVersion(repo);
+
+            version = InfuseCommitAndIncrement(repo, version, releaseChoices.ReleaseType);
+
+            var releaseFlag = UpdatePackageVersion(version);
+
+            if (releaseFlag != ReleaseManagerFlags.Ok)
+                return releaseFlag;
+
+            releaseFlag = UpdatePlatformVersions(version, configFile);
+
+            if (releaseFlag != ReleaseManagerFlags.Ok)
+                return releaseFlag;
+
+            releaseFlag = UpdateChangelog();
+
+            //if (releaseFlag != ReleaseManagerFlags.Ok)
+            //    return releaseFlag;
+
+            //releaseFlag = CreateACommit(repo, version);
+
+            //if (releaseFlag != ReleaseManagerFlags.Ok)
+            //    return releaseFlag;
+
+            //releaseFlag = CreateTag(repo, version);
+
+            return releaseFlag;
+        }
+
+        private static GitVersion InfuseCommitAndIncrement(IRepository repo, GitVersion gitVersion,
+            ReleaseType releaseType)
+        {
+            var headTipSha = repo.Head.Tip.Id.Sha.Substring(0, 10);
+            return new GitVersion(GetUpdateVersion(gitVersion, releaseType), headTipSha);
+        }
+
+        private static GitVersion GetUpdateVersion(GitVersion gitVersion, ReleaseType releaseType)
+        {
+            switch (releaseType)
+            {
+                case ReleaseType.Major:
+                    return gitVersion.IncrementMajorAndGetNew();
+                case ReleaseType.Minor:
+                    return gitVersion.IncrementMinorAndGetNew();
+                case ReleaseType.Patch:
+                    return gitVersion.IncrementPatchAndGetNew();
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(releaseType), releaseType, null);
+            }
+        }
+
+        private static ReleaseManagerFlags CreateACommit(IRepository repo, GitVersion version)
+        {
+            var result = Stage(repo);
+
+            if (result != ReleaseManagerFlags.Ok)
+                return result;
+
             try
             {
                 var sign = repo.Config.BuildSignature(DateTime.Now);
-                repo.Commit($"chore(AppVersion): App version set to {version}.", sign, sign);
+                repo.Commit($"chore(VersionUpdate): {version.ToMajorMinorPatch()}", sign, sign);
 
                 return ReleaseManagerFlags.Ok;
             }
@@ -263,25 +154,56 @@ namespace gitrelease.core
             return ReleaseManagerFlags.Unknown;
         }
 
-        private ReleaseManagerFlags Transaction(Func<Repository, ReleaseManagerFlags> func, ReleaseManagerFlags failFlag)
+        private static ReleaseManagerFlags CreateTag(IRepository repo, GitVersion version)
         {
-            Repository repo = null;
-
             try
             {
-                repo = new Repository(_rootDirectory);
+                repo.ApplyTag($"v{version.ToMajorMinorPatch()}");
+                return ReleaseManagerFlags.Ok;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return ReleaseManagerFlags.TagCreationFailed;
+            }
+        }
 
-                return func(repo);
+        private ReleaseManagerFlags UpdateChangelog()
+        {
+            try
+            {
+                var (_, isError) = CommandExecutor.ExecuteCommand("changelog", "generate", _rootDir);
+
+                return isError ? ReleaseManagerFlags.ChangelogCreationFailed : ReleaseManagerFlags.Ok;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                return failFlag;
+                Console.WriteLine(ex);
+                return ReleaseManagerFlags.ChangelogCreationFailed;
             }
-            finally
+        }
+
+        private ReleaseManagerFlags UpdatePlatformVersions(GitVersion version, ConfigFile configFile)
+        {
+            if (configFile?.Platforms == null)
+                return ReleaseManagerFlags.InvalidConfigFile;
+
+            var platforms = CreatePlatforms(configFile.Platforms);
+
+            if (platforms.Any(platform => platform.Value.Type == PlatformType.INVALID))
             {
-                repo?.Dispose();
+                return ReleaseManagerFlags.InvalidConfigFile;
             }
+
+            foreach (var platform in platforms)
+            {
+                var (flag, _) = platform.Value.Release(version);
+
+                if (flag != ReleaseManagerFlags.Ok)
+                    return flag;
+            }
+
+            return ReleaseManagerFlags.Ok;
         }
 
         private ReadOnlyDictionary<string, IPlatform> CreatePlatforms(IEnumerable<Platform> platforms)
@@ -290,7 +212,7 @@ namespace gitrelease.core
 
             foreach (var platform in platforms)
             {
-                var absolutePath = Path.Combine(_rootDirectory, platform.Path);
+                var absolutePath = Path.Combine(_rootDir, platform.Path);
 
                 switch (platform.Name?.ToLower())
                 {
@@ -315,19 +237,87 @@ namespace gitrelease.core
             return new ReadOnlyDictionary<string, IPlatform>(ps);
         }
 
-        private static bool TryParseFile(string filePath, out ConfigFile file)
+        private ReleaseManagerFlags UpdateDllVersion(GitVersion version)
         {
-            file = default;
-            try
+            throw new NotImplementedException();
+        }
+
+        private ReleaseManagerFlags UpdatePackageVersion(GitVersion version)
+        {
+            return _package.SetVersion(version);
+        }
+
+        private GitVersion GetCurrentVersion(IRepository repo)
+        {
+            return _package.GetVersion();
+        }
+
+        private ReleaseManagerFlags IsRepoReadyForRelease(IRepository repo)
+        {
+            if (IsRepoDirty(repo))
             {
-                file = JsonConvert.DeserializeObject<ConfigFile>(File.ReadAllText(filePath));
-            }
-            catch (Exception)
-            {
-                return false;
+                return ReleaseManagerFlags.DirtyRepo;
             }
 
-            return true;
+            if (!IsRepoInitialized(repo))
+            {
+                return ReleaseManagerFlags.RepoNotInitializedForReleaseProcess;
+            }
+
+            if (AreToolsAvailable(repo))
+            {
+                return ReleaseManagerFlags.InstallNpm;
+            }
+
+            return ReleaseManagerFlags.Ok;
+        }
+
+        private bool AreToolsAvailable(IRepository repo)
+        {
+            return _package.AreToolsAvailable();
+        }
+
+        private bool IsRepoInitialized(IRepository repo)
+        {
+            return _package.IsInitialized();
+        }
+
+        private static bool IsRepoDirty(IRepository repo)
+        {
+            return repo.RetrieveStatus(new StatusOptions())?.IsDirty ?? true;
+        }
+
+        private ReleaseManagerFlags ExecuteRepoSafe(Func<IRepository, ReleaseManagerFlags> func)
+        {
+            using var repo = new Repository(_rootDir);
+            var repoHead = repo.Head;
+
+            try
+            {
+                return func(repo);
+            }
+            catch (Exception e)
+            {
+                repo.Reset(ResetMode.Hard, repoHead.Tip);
+                repo.RemoveUntrackedFiles();
+                Console.WriteLine(e);
+            }
+
+            return ReleaseManagerFlags.Unknown;
+        }
+
+        private ReleaseManagerFlags ExecuteSafe(Func<ReleaseManagerFlags> func)
+        {
+            try
+            {
+                return func();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            return ReleaseManagerFlags.Unknown;
         }
     }
 }

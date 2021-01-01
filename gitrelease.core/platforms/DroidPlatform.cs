@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Xml;
 
@@ -15,11 +16,11 @@ namespace gitrelease.core.platforms
             this.path = path;
         }
 
-        public (ReleaseManagerFlags flag, string[] changedFiles) Release(string version)
+        public (ReleaseManagerFlags flag, string[] changedFiles) Release(GitVersion version)
         {
             if (!Directory.Exists(path))
             {
-                return (ReleaseManagerFlags.InvalidDirectory, new string[]{});
+                return (ReleaseManagerFlags.InvalidDirectory, new string[] { });
             }
 
             var manifestFilePath = GetManifestFilePath(path);
@@ -33,17 +34,29 @@ namespace gitrelease.core.platforms
 
             if (xml != null)
             {
-                var node = xml?.SelectNodes("/manifest")?.Item(0)?.Attributes?["android:versionName"];
+                var versionName = xml?.SelectNodes("/manifest")?.Item(0)?.Attributes?["android:versionName"];
+                var versionCode = xml?.SelectNodes("/manifest")?.Item(0)?.Attributes?["android:versionCode"];
 
-                if (node != null)
-                    node.InnerText = version;
+                if (versionName == null || versionCode == null)
+                    return (ReleaseManagerFlags.InvalidAndroidManifestFileMissingAttributes, new string[] { });
+
+                versionName.InnerText = version.ToMajorMinorPatch();
+                versionCode.InnerText = GenerateVersionCode(version);
 
                 xml?.Save(manifestFilePath);
 
-                return (ReleaseManagerFlags.Ok, new []{ manifestFilePath });
+                return (ReleaseManagerFlags.Ok, new[] {manifestFilePath});
             }
 
-            return (ReleaseManagerFlags.Unknown, new string[]{});
+            return (ReleaseManagerFlags.Unknown, new string[] { });
+        }
+
+        private string GenerateVersionCode(GitVersion version)
+        {
+            return (
+                int.Parse(version.Major) * 100000000 +
+                int.Parse(version.Minor) * 100000 +
+                int.Parse(version.Patch) * 100).ToString();
         }
 
         private static XmlDocument LoadManifest(string manifestFilePath)

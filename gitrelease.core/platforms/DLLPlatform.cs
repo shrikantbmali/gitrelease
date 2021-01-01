@@ -11,7 +11,7 @@
             this.path = path;
         }
 
-        public (ReleaseManagerFlags flag, string[] changedFiles) Release(string version)
+        public (ReleaseManagerFlags flag, string[] changedFiles) Release(GitVersion version)
         {
             return (ReleaseManagerFlags.Ok, new string[]{});
         }

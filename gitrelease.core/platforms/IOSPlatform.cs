@@ -15,7 +15,7 @@ namespace gitrelease.core.platforms
             this.path = path;
         }
 
-        public (ReleaseManagerFlags flag, string[] changedFiles) Release(string version)
+        public (ReleaseManagerFlags flag, string[] changedFiles) Release(GitVersion version)
         {
             if(!Directory.Exists(path))
             {
@@ -40,7 +40,16 @@ namespace gitrelease.core.platforms
             }
             else if (rootDict["CFBundleShortVersionString"] is NSString nsString)
             {
-                nsString.Content = version;
+                nsString.Content = version.ToMajorMinorPatch();
+            }
+
+            if (!rootDict.ContainsKey("CFBundleVersion"))
+            {
+                rootDict.Add("CFBundleVersion", version);
+            }
+            else if (rootDict["CFBundleVersion"] is NSString nsString)
+            {
+                nsString.Content = version.ToMajorMinorPatch();
             }
 
             PropertyListParser.SaveAsXml(rootDict, new FileInfo(plistFilePath));

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using gitrelease.core.platforms;
 using LibGit2Sharp;
 
@@ -72,17 +73,22 @@ namespace gitrelease.core
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
+            releaseFlag = CreateACommit(repo, version);
+
+            if (releaseFlag != ReleaseManagerFlags.Ok)
+                return releaseFlag;
+
             releaseFlag = UpdateChangelog();
 
-            //if (releaseFlag != ReleaseManagerFlags.Ok)
-            //    return releaseFlag;
+            if (releaseFlag != ReleaseManagerFlags.Ok)
+                return releaseFlag;
 
-            //releaseFlag = CreateACommit(repo, version);
+            releaseFlag = AmendLastCommit(repo, version);
 
-            //if (releaseFlag != ReleaseManagerFlags.Ok)
-            //    return releaseFlag;
+            if (releaseFlag != ReleaseManagerFlags.Ok)
+                return releaseFlag;
 
-            //releaseFlag = CreateTag(repo, version);
+            releaseFlag = CreateTag(repo, version);
 
             return releaseFlag;
         }
@@ -120,6 +126,31 @@ namespace gitrelease.core
             {
                 var sign = repo.Config.BuildSignature(DateTime.Now);
                 repo.Commit($"chore(VersionUpdate): {version.ToMajorMinorPatch()}", sign, sign);
+
+                return ReleaseManagerFlags.Ok;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return ReleaseManagerFlags.Unknown;
+        }
+
+        private static ReleaseManagerFlags AmendLastCommit(IRepository repo, GitVersion version)
+        {
+            var result = Stage(repo);
+
+            if (result != ReleaseManagerFlags.Ok)
+                return result;
+
+            try
+            {
+                var sign = repo.Config.BuildSignature(DateTime.Now);
+                repo.Commit($"chore(VersionUpdate): {version.ToMajorMinorPatch()}", sign, sign, new CommitOptions()
+                {
+                    AmendPreviousCommit = true,
+                });
 
                 return ReleaseManagerFlags.Ok;
             }
@@ -318,6 +349,13 @@ namespace gitrelease.core
             }
 
             return ReleaseManagerFlags.Unknown;
+        }
+
+        public string[] GetVersion(string platformName)
+        {
+            return platformName == "all"
+                ? CreatePlatforms(_package.GetConfig().Platforms).Select(p => p.Value.GetVersion()).ToArray()
+                : new[] { CreatePlatforms(_package.GetConfig().Platforms)[platformName].GetVersion() };
         }
     }
 }

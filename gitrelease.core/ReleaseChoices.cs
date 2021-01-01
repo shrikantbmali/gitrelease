@@ -2,7 +2,7 @@
 {
     public class ReleaseChoices
     {
-        public ReleaseType ReleaseType { get; }
+        public ReleaseType ReleaseType { get; set; }
     }
 
     public enum ReleaseType

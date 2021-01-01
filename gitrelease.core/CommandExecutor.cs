@@ -62,7 +62,7 @@ namespace gitrelease.core
                 var output = process?.StandardOutput.ReadToEnd();
                 var err = process?.StandardError.ReadToEnd();
 
-                return (string.IsNullOrEmpty(err) ? output : err, !string.IsNullOrEmpty(err));
+                return (process.ExitCode >= 0 ? output : err, process.ExitCode < 0);
             }
             catch (Exception ex)
             {

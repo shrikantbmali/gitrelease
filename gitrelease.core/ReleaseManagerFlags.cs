@@ -26,6 +26,12 @@
         InstallNpm,
         AlreadyInitialized,
         InvalidConfigFile,
-        InvalidAndroidManifestFileMissingAttributes
+        InvalidAndroidManifestFileMissingAttributes,
+        RepoAlreadyInitialized,
+        NPMInitFailed,
+        NBGVInstallationFailed,
+        NBGVInitFailed,
+        ChangelogGeneratorInstallFailed,
+        ConfigFileCreationFailed
     }
 }

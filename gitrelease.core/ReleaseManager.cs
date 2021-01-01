@@ -29,10 +29,10 @@ namespace gitrelease.core
             if (_package != null)
             {
                 return ReleaseManagerFlags.AlreadyInitialized;
-            } 
-            
+            }
+
             _package = new Package(_rootDir);
-            
+
             return ReleaseManagerFlags.Ok;
         }
 
@@ -168,7 +168,10 @@ namespace gitrelease.core
             {
                 var status = repo.RetrieveStatus();
 
-                foreach (var file in status.Modified.Select(mods => mods.FilePath))
+                foreach (var file in 
+                    status.Modified.Select(entry => entry.FilePath)
+                        .Union(status.Added.Select(entry => entry.FilePath)
+                            .Union(status.Untracked.Select(entry => entry.FilePath))))
                 {
                     repo.Index.Add(file);
                 }
@@ -268,11 +271,6 @@ namespace gitrelease.core
             return new ReadOnlyDictionary<string, IPlatform>(ps);
         }
 
-        private ReleaseManagerFlags UpdateDllVersion(GitVersion version)
-        {
-            throw new NotImplementedException();
-        }
-
         private ReleaseManagerFlags UpdatePackageVersion(GitVersion version)
         {
             return _package.SetVersion(version);
@@ -303,6 +301,26 @@ namespace gitrelease.core
             return ReleaseManagerFlags.Ok;
         }
 
+        private ReleaseManagerFlags IsRepoReadyForSetup(IRepository repo)
+        {
+            if (IsRepoDirty(repo))
+            {
+                return ReleaseManagerFlags.DirtyRepo;
+            }
+
+            if (IsRepoInitialized(repo))
+            {
+                return ReleaseManagerFlags.RepoAlreadyInitialized;
+            }
+
+            if (AreToolsAvailable(repo))
+            {
+                return ReleaseManagerFlags.InstallNpm;
+            }
+
+            return ReleaseManagerFlags.Ok;
+        }
+
         private bool AreToolsAvailable(IRepository repo)
         {
             return _package.AreToolsAvailable();
@@ -323,15 +341,26 @@ namespace gitrelease.core
             using var repo = new Repository(_rootDir);
             var repoHead = repo.Head;
 
+            var result = ReleaseManagerFlags.Unknown;
+
             try
             {
-                return func(repo);
+                result = func(repo);
+
+                return result;
             }
             catch (Exception e)
             {
-                repo.Reset(ResetMode.Hard, repoHead.Tip);
-                repo.RemoveUntrackedFiles();
                 Console.WriteLine(e);
+                result = ReleaseManagerFlags.Unknown;
+            }
+            finally
+            {
+                if (result != ReleaseManagerFlags.Ok && result != ReleaseManagerFlags.DirtyRepo)
+                {
+                    repo.Reset(ResetMode.Hard, repoHead.Tip);
+                    repo.RemoveUntrackedFiles();
+                }
             }
 
             return ReleaseManagerFlags.Unknown;
@@ -355,7 +384,96 @@ namespace gitrelease.core
         {
             return platformName == "all"
                 ? CreatePlatforms(_package.GetConfig().Platforms).Select(p => p.Value.GetVersion()).ToArray()
-                : new[] { CreatePlatforms(_package.GetConfig().Platforms)[platformName].GetVersion() };
+                : new[] {CreatePlatforms(_package.GetConfig().Platforms)[platformName].GetVersion()};
+        }
+
+        public ReleaseManagerFlags SetupRepo()
+        {
+            return ExecuteSafe(() =>
+            {
+                return ExecuteRepoSafe(repo =>
+                {
+                    var validityFlag = IsRepoReadyForSetup(repo);
+
+                    if (validityFlag != ReleaseManagerFlags.Ok)
+                        return validityFlag;
+
+                    validityFlag = InitNpm();
+
+                    if (validityFlag != ReleaseManagerFlags.Ok)
+                        return validityFlag;
+
+                    validityFlag = InstallChangelogGenerator();
+
+                    if (validityFlag != ReleaseManagerFlags.Ok)
+                        return validityFlag;
+
+                    validityFlag = InitNbgv();
+
+                    if (validityFlag != ReleaseManagerFlags.Ok)
+                        return validityFlag;
+
+                    validityFlag = InitDefaultConfig();
+
+                    if (validityFlag != ReleaseManagerFlags.Ok)
+                        return validityFlag;
+
+                    validityFlag = Stage(repo);
+
+                    return validityFlag;
+                });
+            });
+        }
+
+        private ReleaseManagerFlags InstallChangelogGenerator()
+        {
+            var (_, isError) =
+                CommandExecutor.ExecuteCommand("npm", "install generate-changelog -D", _rootDir);
+
+            if (isError)
+                return ReleaseManagerFlags.ChangelogGeneratorInstallFailed;
+
+            (_, isError) =
+                CommandExecutor.ExecuteCommand("npm", "install", _rootDir);
+
+            return isError ? ReleaseManagerFlags.ChangelogGeneratorInstallFailed : ReleaseManagerFlags.Ok;
+        }
+
+        private ReleaseManagerFlags InitDefaultConfig()
+        {
+            var save = new ConfigFile()
+            {
+                Platforms = new[]
+                {
+                    new Platform()
+                    {
+                        Name = "platform name, supported are [ios, droid, uwp]",
+                        Path = "path to the root of the specified platforms project."
+                    }
+                }
+            }.Save(Path.Combine(_rootDir, ConfigFile.FixName));
+
+            return save ? ReleaseManagerFlags.Ok : ReleaseManagerFlags.ConfigFileCreationFailed;
+        }
+
+        private ReleaseManagerFlags InitNbgv()
+        {
+            var (_, isError) =
+                CommandExecutor.ExecuteCommand("dotnet", "tool install --global nbgv --version 3.3.37", _rootDir);
+
+            if (isError)
+                return ReleaseManagerFlags.NBGVInstallationFailed;
+
+            (_, isError) = CommandExecutor.ExecuteCommand("nbgv", "install", _rootDir);
+
+            return isError ? ReleaseManagerFlags.NBGVInitFailed : ReleaseManagerFlags.Ok;
+        }
+
+        private ReleaseManagerFlags InitNpm()
+        {
+            var (_, isError) = CommandExecutor.ExecuteCommand("npm", "init -f", _rootDir);
+
+            return isError ? ReleaseManagerFlags.NPMInitFailed : ReleaseManagerFlags.Ok;
         }
     }
 }

@@ -40,7 +40,7 @@ namespace gitrelease.core.platforms
             }
             else if (rootDict["CFBundleShortVersionString"] is NSString nsString)
             {
-                nsString.Content = version.ToMajorMinorPatch();
+                nsString.Content = version.ToVersionString();
             }
 
             if (!rootDict.ContainsKey("CFBundleVersion"))
@@ -49,7 +49,7 @@ namespace gitrelease.core.platforms
             }
             else if (rootDict["CFBundleVersion"] is NSString nsString)
             {
-                nsString.Content = version.ToMajorMinorPatch();
+                nsString.Content = version.ToVersionString();
             }
 
             PropertyListParser.SaveAsXml(rootDict, new FileInfo(plistFilePath));

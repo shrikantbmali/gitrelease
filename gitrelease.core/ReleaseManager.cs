@@ -65,13 +65,7 @@ namespace gitrelease.core
         {
             Console.WriteLine("Starting release sequence.");
 
-            var version = GetCurrentVersion();
-
-            var versionVNext = InfuseCommitAndIncrement(repo, version, releaseChoices.ReleaseType);
-
-            Console.WriteLine($"Current version is: {version} and it will be updated to {versionVNext}");
-
-            version = versionVNext;
+            var version = DetermineNextVersion(repo, releaseChoices);
 
             Console.WriteLine("Updating package version...");
             var releaseFlag = UpdatePackageVersion(version);
@@ -90,8 +84,15 @@ namespace gitrelease.core
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
-            Console.WriteLine("Generating changelog...");
-            releaseFlag = UpdateChangelog();
+            if (!releaseChoices.CustomVersion?.IsPrerelease() ?? false)
+            {
+                Console.WriteLine("Generating changelog...");
+                releaseFlag = UpdateChangelog();
+            }
+            else
+            {
+                Console.WriteLine("Creation of changelog skipped due to it being a pre-release.");
+            }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
@@ -102,17 +103,42 @@ namespace gitrelease.core
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
-            Console.WriteLine($"Creating tag name v{version.ToMajorMinorPatch()}");
-            releaseFlag = CreateTag(repo, version);
+            if (!releaseChoices.CustomVersion?.IsPrerelease() ?? false)
+            {
+                Console.WriteLine($"Creating tag name v{version.ToVersionString()}");
+                releaseFlag = CreateTag(repo, version);
+            }
+            else
+            {
+                Console.WriteLine("Creation of tag skipped due to this being a pre-release.");
+            }
 
             return releaseFlag;
         }
 
-        private static GitVersion InfuseCommitAndIncrement(IRepository repo, GitVersion gitVersion,
-            ReleaseType releaseType)
+        private GitVersion DetermineNextVersion(IRepository repo, ReleaseChoices releaseChoices)
         {
-            var headTipSha = repo.Head.Tip.Id.Sha.Substring(0, 10);
-            return new GitVersion(GetUpdateVersion(gitVersion, releaseType), headTipSha);
+            var version = GetCurrentVersion();
+
+            var versionVNext = releaseChoices.ReleaseType == ReleaseType.Custom
+                ? releaseChoices.CustomVersion
+                : InfuseCommitAndIncrement(repo, version, releaseChoices.ReleaseType);
+
+            if (releaseChoices.CustomVersion?.IsPrerelease() ?? false)
+            {
+                versionVNext = versionVNext.GetNewWithPreReleaseTag(releaseChoices.CustomVersion.PreReleaseTag);
+            }
+
+            Console.WriteLine($"Current version is: {version} and it will be updated to {versionVNext}");
+
+            return versionVNext;
+        }
+
+        private static GitVersion InfuseCommitAndIncrement(IRepository repo, GitVersion gitVersion, ReleaseType releaseType)
+        {
+            //var headTipSha = repo.Head.Tip.Id.Sha.Substring(0, 10);
+            return GetUpdateVersion(gitVersion, releaseType);
+            //return new GitVersion(GetUpdateVersion(gitVersion, releaseType), headTipSha);
         }
 
         private static GitVersion GetUpdateVersion(GitVersion gitVersion, ReleaseType releaseType)
@@ -140,7 +166,7 @@ namespace gitrelease.core
             try
             {
                 var sign = repo.Config.BuildSignature(DateTime.Now);
-                repo.Commit($"chore(VersionUpdate): {version.ToMajorMinorPatch()}", sign, sign);
+                repo.Commit($"chore(VersionUpdate): {version.ToVersionString()}", sign, sign);
 
                 return ReleaseManagerFlags.Ok;
             }
@@ -162,7 +188,7 @@ namespace gitrelease.core
             try
             {
                 var sign = repo.Config.BuildSignature(DateTime.Now);
-                repo.Commit($"chore(VersionUpdate): {version.ToMajorMinorPatch()}", sign, sign, new CommitOptions()
+                repo.Commit($"chore(VersionUpdate): {version.ToVersionString()}", sign, sign, new CommitOptions()
                 {
                     AmendPreviousCommit = true,
                 });
@@ -207,7 +233,7 @@ namespace gitrelease.core
         {
             try
             {
-                repo.ApplyTag($"v{version.ToMajorMinorPatch()}");
+                repo.ApplyTag($"v{version.ToVersionString()}");
                 return ReleaseManagerFlags.Ok;
             }
             catch (Exception e)

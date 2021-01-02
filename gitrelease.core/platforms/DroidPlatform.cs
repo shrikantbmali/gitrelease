@@ -39,7 +39,7 @@ namespace gitrelease.core.platforms
                 if (versionName == null || versionCode == null)
                     return (ReleaseManagerFlags.InvalidAndroidManifestFileMissingAttributes, new string[] { });
 
-                versionName.InnerText = version.ToMajorMinorPatch();
+                versionName.InnerText = version.ToVersionString();
                 versionCode.InnerText = GenerateVersionCode(version);
 
                 xml?.Save(manifestFilePath);

@@ -30,7 +30,7 @@ namespace gitrelease.core
             if (result != ReleaseManagerFlags.Ok)
                 return result;
 
-            return UpdateVersionFile(version.ToMajorMinorPatch());
+            return UpdateVersionFile(version.ToVersionString());
         }
 
         private ReleaseManagerFlags UpdatePackageFile(GitVersion version)
@@ -38,7 +38,7 @@ namespace gitrelease.core
             var packageFilePath = GetPackageFilePath();
 
             var json = ReadFile(packageFilePath);
-            json["version"] = version.ToMajorMinorPatch();
+            json["version"] = version.ToVersionString();
 
             return SaveFile(json, packageFilePath);
         }

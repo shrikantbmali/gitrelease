@@ -10,21 +10,39 @@ namespace gitrelease.cli
     {
         private static int Main(string[] args)
         {
-            var rootCommand = new RootCommand { Handler = CommandHandler.Create<string, ReleaseType>(ReleaseSequence) };
+            var rootCommand = new RootCommand { Handler = CommandHandler.Create<string, ReleaseType, string, string>(ReleaseSequence) };
+
             rootCommand.AddOption(
                 new Option<string>(
                     new [] { "--root" , "-r"},
                     Directory.GetCurrentDirectory,
                     "Specify the root folder if the current executing directory is not a intended folder"));
 
-            rootCommand.AddOption(new Option<ReleaseType>(
-                new[] {"--bump", "-b"},
-                "Specifies whether to update Major, Minor or Patch version")
-            {
-                IsRequired = true
-            });
+            rootCommand.AddOption(
+                new Option<string>(
+                    new [] { "--prerelease" , "-p"},
+                    "Any Prerelease tap you'd like to add to the version."));
 
-            var getVersionCommand = new Command("get-version", "Gets the current versions used by repositories.")
+            rootCommand.AddArgument(
+                new Argument<ReleaseType>(
+                    "release-type",
+                    "Specify the release type")
+                {
+                    Arity = ArgumentArity.ExactlyOne
+                    
+                });
+
+            rootCommand.AddArgument(
+                new Argument<string>(
+                    "version",
+                    "Specify the release version")
+                {
+                    Arity = ArgumentArity.ZeroOrOne
+                });
+
+            var getVersionCommand = new Command(
+                "get-version",
+                "Gets the current versions used by repositories.")
             {
                 Handler = CommandHandler.Create<string, string>(GetVersion),
             };
@@ -33,7 +51,7 @@ namespace gitrelease.cli
 
             getVersionCommand.AddOption(
                 new Option<string>(
-                    new [] { "--platform", "-p"},
+                    new [] { "--platform", "-t"},
                     () => "all",
                     "Gets version for specific platform."));
 
@@ -80,15 +98,28 @@ namespace gitrelease.cli
             return (int)result;
         }
 
-        private static int ReleaseSequence(string root, ReleaseType bump)
+        private static int ReleaseSequence(string root, ReleaseType releaseType, string version, string prerelease)
         {
+            if (releaseType == ReleaseType.Custom && !GitVersion.IsValid(version))
+            {
+                Console.WriteLine(
+                    "when selecting custom version type, version must be provided in format {Major}.{Minor}.{Patch}");
+
+                return -1;
+            }
+
             var manager = new ReleaseManager(root == "." ? Directory.GetCurrentDirectory() : root);
 
             manager.Initialize();
 
-            var releaseManagerFlags = manager.Release(new ReleaseChoices()
+            var releaseManagerFlags = manager.Release(new ReleaseChoices
             {
-                ReleaseType = bump
+                ReleaseType = releaseType,
+                CustomVersion = releaseType == ReleaseType.Custom
+                    ? GitVersion.Parse(version, prerelease)
+                    : string.IsNullOrEmpty(prerelease)
+                        ? null
+                        : GitVersion.GetPrerelease(prerelease)
             });
 
             DumpMessage(releaseManagerFlags);

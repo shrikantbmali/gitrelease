@@ -1,6 +1,8 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Xml;
 
 namespace gitrelease.core.platforms
@@ -34,14 +36,12 @@ namespace gitrelease.core.platforms
 
                 var xml = LoadManifest(manifestFilePath);
 
-                if (xml == null)
-                    return (ReleaseManagerFlags.FileNotFound, new string[] { });
-
                 var versionNode = RetrieveVersionNode(xml);
 
                 if (versionNode != null)
-                    versionNode.InnerText = version.ToMajorMinorPatch();
-                else return (ReleaseManagerFlags.InvalidUWPPackageFile, new string[] { });
+                    versionNode.InnerText = version.ToUWPSpecificVersionString();
+                else
+                    return (ReleaseManagerFlags.InvalidUWPPackageFile, new string[] { });
 
                 xml?.Save(manifestFilePath);
 
@@ -108,6 +108,26 @@ namespace gitrelease.core.platforms
         private static string GetManifestFilePath(string path)
         {
             return Directory.GetFiles(path, "Package.appxmanifest").FirstOrDefault();
+        }
+    }
+
+    internal static class GitVersionUwpExtension
+    {
+        public static string ToUWPSpecificVersionString(this GitVersion version)
+        {
+            return $"{version.Major}.{version.Minor}.{version.Patch}"
+                   + (version.IsPrerelease() ? "." + GetPrereleaseSpecificNumber(version.PreReleaseTag) : null);
+        }
+
+        private static object GetPrereleaseSpecificNumber(string versionPreReleaseTag)
+        {
+            return versionPreReleaseTag switch
+            {
+                "alpha" => 1,
+                "beta" => 2,
+                "rc" => 3,
+                _ => int.MaxValue
+            };
         }
     }
 }

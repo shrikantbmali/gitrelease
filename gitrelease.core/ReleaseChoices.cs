@@ -5,6 +5,7 @@
         public ReleaseType ReleaseType { get; set; }
 
         public GitVersion CustomVersion { get; set; }
+        public bool DryRun { get; set; }
     }
 
     public enum ReleaseType

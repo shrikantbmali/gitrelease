@@ -73,9 +73,9 @@ namespace gitrelease.core.platforms
 
             var rootDict = (NSDictionary)PropertyListParser.Parse(plistFilePath);
 
-            if (rootDict?["CFBundleShortVersionString"] is NSString nsString)
+            if (rootDict?["CFBundleVersion"] is NSString nsString)
             {
-                return nsString.Content;
+                return $"{Type}:{nsString.Content}";
             }
 
             return "Invalid directory";

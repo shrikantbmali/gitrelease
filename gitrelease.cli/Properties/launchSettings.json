@@ -2,7 +2,7 @@
   "profiles": {
     "gitrelease.cli": {
       "commandName": "Project",
-      "commandLineArgs": "init --root C:\\Users\\ShrikantMali\\sandbox\\ac\\main"
+      "commandLineArgs": "--root C:\\Users\\ShrikantMali\\sandbox\\ac\\main minor -p rc -d"
     }
   }
 }

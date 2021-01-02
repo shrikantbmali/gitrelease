@@ -82,7 +82,7 @@ namespace gitrelease.core.platforms
             var xml = LoadManifest(manifestFilePath);
             var node = xml?.SelectNodes("/manifest")?.Item(0)?.Attributes?["android:versionName"];
 
-            return node?.InnerText;
+            return $"{Type}:{node?.InnerText}";
         }
 
         private static string GetManifestFilePath(string path)

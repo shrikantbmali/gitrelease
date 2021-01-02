@@ -1,17 +1,11 @@
 {
   "name": "gitrelease",
   "version": "1.4.0-rc",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/shrknt35/release.git"
   },
-  "keywords": [],
-  "author": "",
+  "author": "shrknt35@gmail.com",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/shrknt35/release/issues"

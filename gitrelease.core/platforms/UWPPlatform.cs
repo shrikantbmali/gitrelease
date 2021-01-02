@@ -102,7 +102,8 @@ namespace gitrelease.core.platforms
             }
 
             var xml = LoadManifest(manifestFilePath);
-            return RetrieveVersionNode(xml)?.InnerText;
+
+            return $"{Type}:{RetrieveVersionNode(xml)?.InnerText}";
         }
 
         private static string GetManifestFilePath(string path)

@@ -53,7 +53,7 @@ namespace gitrelease.core
                         ? ReleaseManagerFlags.InvalidConfigFile
                         : Release(repo, config, releaseChoices);
 
-                    if(result == ReleaseManagerFlags.Ok)
+                    if(result == ReleaseManagerFlags.Ok && !releaseChoices.CustomVersion.IsPrerelease())
                         Console.WriteLine("To push changes to origin, use command: git push && git push --tags");
 
                     return result;
@@ -79,7 +79,8 @@ namespace gitrelease.core
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
-            releaseFlag = CreateACommit(repo, version);
+            if(!releaseChoices.DryRun)
+                releaseFlag = CreateACommit(repo, version);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
@@ -97,8 +98,11 @@ namespace gitrelease.core
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
-            Console.WriteLine("Creating commit...");
-            releaseFlag = AmendLastCommit(repo, version);
+            if (!releaseChoices.DryRun)
+            {
+                Console.WriteLine("Creating commit...");
+                releaseFlag = AmendLastCommit(repo, version);
+            }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
@@ -423,9 +427,11 @@ namespace gitrelease.core
 
         public IEnumerable<string> GetVersion(string platformName)
         {
-            return platformName == "all"
+            var list = new List<string> {GetCurrentVersion().ToString()};
+
+            return list.Union(platformName == "all"
                 ? CreatePlatforms(_package.GetConfig().Platforms).Select(p => p.Value.GetVersion()).ToArray()
-                : new[] { CreatePlatforms(_package.GetConfig().Platforms)[platformName].GetVersion() };
+                : new[] { CreatePlatforms(_package.GetConfig().Platforms)[platformName].GetVersion() });
         }
 
         public ReleaseManagerFlags SetupRepo()

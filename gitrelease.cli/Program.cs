@@ -10,12 +10,18 @@ namespace gitrelease.cli
     {
         private static int Main(string[] args)
         {
-            var rootCommand = new RootCommand { Handler = CommandHandler.Create<string, ReleaseType, string, string>(ReleaseSequence) };
+            var rootCommand = new RootCommand { Handler = CommandHandler.Create<string, ReleaseType, string, string, bool>(ReleaseSequence) };
 
             rootCommand.AddOption(
                 new Option<string>(
                     new [] { "--root" , "-r"},
                     Directory.GetCurrentDirectory,
+                    "Specify the root folder if the current executing directory is not a intended folder"));
+
+            rootCommand.AddOption(
+                new Option<bool>(
+                    new [] { "--dry-run" , "-d"},
+                    () => false,
                     "Specify the root folder if the current executing directory is not a intended folder"));
 
             rootCommand.AddOption(
@@ -98,7 +104,7 @@ namespace gitrelease.cli
             return (int)result;
         }
 
-        private static int ReleaseSequence(string root, ReleaseType releaseType, string version, string prerelease)
+        private static int ReleaseSequence(string root, ReleaseType releaseType, string version, string prerelease, bool dryRun)
         {
             if (releaseType == ReleaseType.Custom && !GitVersion.IsValid(version))
             {
@@ -119,7 +125,8 @@ namespace gitrelease.cli
                     ? GitVersion.Parse(version, prerelease)
                     : string.IsNullOrEmpty(prerelease)
                         ? null
-                        : GitVersion.GetPrerelease(prerelease)
+                        : GitVersion.GetPrerelease(prerelease),
+                DryRun = dryRun
             });
 
             DumpMessage(releaseManagerFlags);

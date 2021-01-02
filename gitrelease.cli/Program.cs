@@ -124,7 +124,7 @@ namespace gitrelease.cli
                 CustomVersion = releaseType == ReleaseType.Custom
                     ? GitVersion.Parse(version, prerelease)
                     : string.IsNullOrEmpty(prerelease)
-                        ? null
+                        ? GitVersion.Empty
                         : GitVersion.GetPrerelease(prerelease),
                 DryRun = dryRun
             });

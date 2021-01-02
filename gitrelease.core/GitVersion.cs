@@ -15,6 +15,8 @@ namespace gitrelease.core
 
         public string PreReleaseTag { get; private set; }
 
+        public static GitVersion Empty = new GitVersion(string.Empty, string.Empty, string.Empty);
+
         //public string CommitId { get; }
 
         private GitVersion(string major, string minor, string patch)

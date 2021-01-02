@@ -107,7 +107,7 @@ namespace gitrelease.core
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
-            if (!releaseChoices.CustomVersion?.IsPrerelease() ?? false)
+            if (releaseChoices.DryRun && (!releaseChoices.CustomVersion?.IsPrerelease() ?? false))
             {
                 Console.WriteLine($"Creating tag name v{version.ToVersionString()}");
                 releaseFlag = CreateTag(repo, version);

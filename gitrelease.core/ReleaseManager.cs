@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using gitrelease.core.platforms;
 using LibGit2Sharp;
 
@@ -42,6 +41,7 @@ namespace gitrelease.core
             {
                 return ExecuteRepoSafe(repo =>
                 {
+                    Console.WriteLine("Validating repo...");
                     var validityFlag = IsRepoReadyForRelease(repo);
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
@@ -49,25 +49,37 @@ namespace gitrelease.core
 
                     var config = _package.GetConfig();
 
-                    if (config == null)
-                        return ReleaseManagerFlags.InvalidConfigFile;
+                    var result = config == null
+                        ? ReleaseManagerFlags.InvalidConfigFile
+                        : Release(repo, config, releaseChoices);
 
-                    return Release(repo, config, releaseChoices);
+                    if(result == ReleaseManagerFlags.Ok)
+                        Console.WriteLine("To push changes to origin, use command: git push && git push --tags");
+
+                    return result;
                 });
             });
         }
 
         private ReleaseManagerFlags Release(IRepository repo, ConfigFile configFile, ReleaseChoices releaseChoices)
         {
-            var version = GetCurrentVersion(repo);
+            Console.WriteLine("Starting release sequence.");
 
-            version = InfuseCommitAndIncrement(repo, version, releaseChoices.ReleaseType);
+            var version = GetCurrentVersion();
 
+            var versionVNext = InfuseCommitAndIncrement(repo, version, releaseChoices.ReleaseType);
+
+            Console.WriteLine($"Current version is: {version} and it will be updated to {versionVNext}");
+
+            version = versionVNext;
+
+            Console.WriteLine("Updating package version...");
             var releaseFlag = UpdatePackageVersion(version);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
+            Console.WriteLine("Updating platform version...");
             releaseFlag = UpdatePlatformVersions(version, configFile);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
@@ -78,16 +90,19 @@ namespace gitrelease.core
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
+            Console.WriteLine("Generating changelog...");
             releaseFlag = UpdateChangelog();
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
+            Console.WriteLine("Creating commit...");
             releaseFlag = AmendLastCommit(repo, version);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
+            Console.WriteLine($"Creating tag name v{version.ToMajorMinorPatch()}");
             releaseFlag = CreateTag(repo, version);
 
             return releaseFlag;
@@ -168,7 +183,7 @@ namespace gitrelease.core
             {
                 var status = repo.RetrieveStatus();
 
-                foreach (var file in 
+                foreach (var file in
                     status.Modified.Select(entry => entry.FilePath)
                         .Union(status.Added.Select(entry => entry.FilePath)
                             .Union(status.Untracked.Select(entry => entry.FilePath))))
@@ -276,7 +291,7 @@ namespace gitrelease.core
             return _package.SetVersion(version);
         }
 
-        private GitVersion GetCurrentVersion(IRepository repo)
+        private GitVersion GetCurrentVersion()
         {
             return _package.GetVersion();
         }
@@ -288,12 +303,12 @@ namespace gitrelease.core
                 return ReleaseManagerFlags.DirtyRepo;
             }
 
-            if (!IsRepoInitialized(repo))
+            if (!IsRepoInitialized())
             {
                 return ReleaseManagerFlags.RepoNotInitializedForReleaseProcess;
             }
 
-            if (AreToolsAvailable(repo))
+            if (AreToolsAvailable())
             {
                 return ReleaseManagerFlags.InstallNpm;
             }
@@ -308,12 +323,12 @@ namespace gitrelease.core
                 return ReleaseManagerFlags.DirtyRepo;
             }
 
-            if (IsRepoInitialized(repo))
+            if (IsRepoInitialized())
             {
                 return ReleaseManagerFlags.RepoAlreadyInitialized;
             }
 
-            if (AreToolsAvailable(repo))
+            if (AreToolsAvailable())
             {
                 return ReleaseManagerFlags.InstallNpm;
             }
@@ -321,12 +336,12 @@ namespace gitrelease.core
             return ReleaseManagerFlags.Ok;
         }
 
-        private bool AreToolsAvailable(IRepository repo)
+        private bool AreToolsAvailable()
         {
             return _package.AreToolsAvailable();
         }
 
-        private bool IsRepoInitialized(IRepository repo)
+        private bool IsRepoInitialized()
         {
             return _package.IsInitialized();
         }
@@ -366,7 +381,7 @@ namespace gitrelease.core
             return ReleaseManagerFlags.Unknown;
         }
 
-        private ReleaseManagerFlags ExecuteSafe(Func<ReleaseManagerFlags> func)
+        private static ReleaseManagerFlags ExecuteSafe(Func<ReleaseManagerFlags> func)
         {
             try
             {
@@ -380,11 +395,11 @@ namespace gitrelease.core
             return ReleaseManagerFlags.Unknown;
         }
 
-        public string[] GetVersion(string platformName)
+        public IEnumerable<string> GetVersion(string platformName)
         {
             return platformName == "all"
                 ? CreatePlatforms(_package.GetConfig().Platforms).Select(p => p.Value.GetVersion()).ToArray()
-                : new[] {CreatePlatforms(_package.GetConfig().Platforms)[platformName].GetVersion()};
+                : new[] { CreatePlatforms(_package.GetConfig().Platforms)[platformName].GetVersion() };
         }
 
         public ReleaseManagerFlags SetupRepo()

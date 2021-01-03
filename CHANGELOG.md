@@ -1,3 +1,18 @@
+#### 1.5.4 (2021-01-03)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.5.4 ([779f1724](https://github.com/shrknt35/release/commit/779f17240106077f883f0f7b5e3ea3b174c7844a))
+  *  1.5.3 ([0e037989](https://github.com/shrknt35/release/commit/0e037989c3b7c9449f6b550fbafe1d3a2a0ff8bb))
+  *  1.5.2-rc ([18e7fd59](https://github.com/shrknt35/release/commit/18e7fd5936a56b10b9cdecdc38ef2821072059df))
+* **Release:**  1.5.1 ([66da8846](https://github.com/shrknt35/release/commit/66da8846576c2979712e086ba3252cf7f63c8aa4))
+
+##### New Features
+
+* **Flags:**  add flags for skipping tags and changelog ([603b1e2d](https://github.com/shrknt35/release/commit/603b1e2d1513c04df33053eb2a32de0afd1f2125))
+* **Color:**  error and info are now in colors ([ef3db41c](https://github.com/shrknt35/release/commit/ef3db41cf2866cf04df67af47c046d598f67fb0a))
+
 #### 1.5.3 (2021-01-03)
 
 ##### Chores

@@ -5,7 +5,12 @@
         public ReleaseType ReleaseType { get; set; }
 
         public GitVersion CustomVersion { get; set; }
+
         public bool DryRun { get; set; }
+
+        public bool SkipTag { get; set; }
+
+        public bool SkipChangelog { get; set; }
     }
 
     public enum ReleaseType

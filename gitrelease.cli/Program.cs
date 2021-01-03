@@ -11,32 +11,41 @@ namespace gitrelease.cli
     {
         private static int Main(string[] args)
         {
-            var rootCommand = new RootCommand { Handler = CommandHandler.Create<string, ReleaseType, string, string, bool>(ReleaseSequence) };
+            var rootCommand = new RootCommand
+            {
+                Handler = CommandHandler.Create<string, ReleaseType, string, string, bool, bool, bool>(ReleaseSequence)
+            };
 
             rootCommand.AddOption(
                 new Option<string>(
                     new [] { "--root" , "-r"},
                     Directory.GetCurrentDirectory,
                     "Specify the root folder if the current executing directory is not a intended folder"));
-
             rootCommand.AddOption(
                 new Option<bool>(
                     new [] { "--dry-run" , "-d"},
                     () => false,
                     "Specify the root folder if the current executing directory is not a intended folder"));
-
+            rootCommand.AddOption(
+                new Option<bool>(
+                    new [] { "--skip-changelog" , "-k"},
+                    () => false,
+                    "Specify the root folder if the current executing directory is not a intended folder"));
+            rootCommand.AddOption(
+                new Option<bool>(
+                    new [] { "--skip-tag" , "-g"},
+                    () => false,
+                    "Specify the root folder if the current executing directory is not a intended folder"));
             rootCommand.AddOption(
                 new Option<string>(
                     new [] { "--prerelease" , "-p"},
                     "Any Prerelease tap you'd like to add to the version."));
-
             rootCommand.AddArgument(
                 new Argument<ReleaseType>(
                     "release-type",
                     "Specify the release type")
                 {
                     Arity = ArgumentArity.ExactlyOne
-                    
                 });
 
             rootCommand.AddArgument(
@@ -91,6 +100,7 @@ namespace gitrelease.cli
         private static int Init(string root)
         {
             var releaseManager = new ReleaseManager(root, CreateMessenger());
+
             var result = releaseManager.Initialize();
 
             if (result != ReleaseManagerFlags.Ok)
@@ -110,7 +120,14 @@ namespace gitrelease.cli
             return new ConsoleMessenger();
         }
 
-        private static int ReleaseSequence(string root, ReleaseType releaseType, string version, string prerelease, bool dryRun)
+        private static int ReleaseSequence(
+            string root,
+            ReleaseType releaseType,
+            string version,
+            string prerelease,
+            bool dryRun,
+            bool skipTag,
+            bool skipChangelog)
         {
             if (releaseType == ReleaseType.Custom && !GitVersion.IsValid(version))
             {
@@ -132,7 +149,9 @@ namespace gitrelease.cli
                     : string.IsNullOrEmpty(prerelease)
                         ? GitVersion.Empty
                         : GitVersion.GetPrerelease(prerelease),
-                DryRun = dryRun
+                DryRun = dryRun,
+                SkipTag = skipTag,
+                SkipChangelog = skipChangelog
             });
 
             DumpMessage(releaseManagerFlags);

@@ -2,7 +2,7 @@
   "profiles": {
     "gitrelease.cli": {
       "commandName": "Project",
-      "commandLineArgs": "--root C:\\Users\\ShrikantMali\\sandbox\\ac\\main patch -d"
+      "commandLineArgs": "--root C:\\Users\\ShrikantMali\\sandbox\\ac\\main patch -d -k -g -p rc"
     }
   }
 }

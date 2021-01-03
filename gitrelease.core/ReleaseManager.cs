@@ -87,14 +87,10 @@ namespace gitrelease.core
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
-            if (!releaseChoices.CustomVersion?.IsPrerelease() ?? false)
+            if (!releaseChoices.SkipChangelog)
             {
                 _messenger.Info("Generating changelog...");
                 releaseFlag = UpdateChangelog();
-            }
-            else
-            {
-                _messenger.Info("Creation of changelog skipped due to it being a pre-release.");
             }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
@@ -109,14 +105,10 @@ namespace gitrelease.core
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
-            if (!releaseChoices.DryRun && (!releaseChoices.CustomVersion?.IsPrerelease() ?? false))
+            if (!releaseChoices.DryRun && !releaseChoices.SkipTag)
             {
                 _messenger.Info($"Creating tag name v{version.ToVersionString()}");
                 releaseFlag = CreateTag(repo, version);
-            }
-            else
-            {
-                _messenger.Info("Creation of tag skipped due to this being a pre-release.");
             }
 
             return releaseFlag;

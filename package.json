@@ -1,6 +1,6 @@
 {
   "name": "gitrelease",
-  "version": "1.5.1",
+  "version": "1.5.2-rc",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/shrknt35/release.git"

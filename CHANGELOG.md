@@ -1,3 +1,14 @@
+#### 1.5.2-rc (2021-01-03)
+
+##### Chores
+
+* **VersionUpdate:**  1.5.2-rc ([a1156d20](https://github.com/shrknt35/release/commit/a1156d2039a539b6055a65f67149bb4361e2058a))
+* **Release:**  1.5.1 ([66da8846](https://github.com/shrknt35/release/commit/66da8846576c2979712e086ba3252cf7f63c8aa4))
+
+##### New Features
+
+* **Color:**  error and info are now in colors ([ef3db41c](https://github.com/shrknt35/release/commit/ef3db41cf2866cf04df67af47c046d598f67fb0a))
+
 #### 1.5.1 (2021-01-02)
 
 ##### Chores

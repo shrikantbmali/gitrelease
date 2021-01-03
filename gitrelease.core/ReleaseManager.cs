@@ -11,11 +11,13 @@ namespace gitrelease.core
     public class ReleaseManager
     {
         private readonly string _rootDir;
+        private readonly IMessenger _messenger;
         private Package _package;
 
-        public ReleaseManager(string rootDir)
+        public ReleaseManager(string rootDir, IMessenger messenger)
         {
             _rootDir = rootDir;
+            _messenger = messenger;
         }
 
         public ReleaseManagerFlags Initialize()
@@ -41,7 +43,7 @@ namespace gitrelease.core
             {
                 return ExecuteRepoSafe(repo =>
                 {
-                    Console.WriteLine("Validating repo...");
+                    _messenger.Info("Validating repo...");
                     var validityFlag = IsRepoReadyForRelease(repo);
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
@@ -53,8 +55,8 @@ namespace gitrelease.core
                         ? ReleaseManagerFlags.InvalidConfigFile
                         : Release(repo, config, releaseChoices);
 
-                    if(result == ReleaseManagerFlags.Ok && !releaseChoices.CustomVersion.IsPrerelease())
-                        Console.WriteLine("To push changes to origin, use command: git push && git push --tags");
+                    if(result == ReleaseManagerFlags.Ok && !releaseChoices.CustomVersion.IsPrerelease() && !releaseChoices.DryRun)
+                        _messenger.Info("To push changes to origin, use command: git push && git push --tags");
 
                     return result;
                 });
@@ -63,17 +65,17 @@ namespace gitrelease.core
 
         private ReleaseManagerFlags Release(IRepository repo, ConfigFile configFile, ReleaseChoices releaseChoices)
         {
-            Console.WriteLine("Starting release sequence.");
+            _messenger.Info("Starting release sequence.");
 
             var version = DetermineNextVersion(repo, releaseChoices);
 
-            Console.WriteLine("Updating package version...");
+            _messenger.Info("Updating package version...");
             var releaseFlag = UpdatePackageVersion(version);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
-            Console.WriteLine("Updating platform version...");
+            _messenger.Info("Updating platform version...");
             releaseFlag = UpdatePlatformVersions(version, configFile);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
@@ -87,12 +89,12 @@ namespace gitrelease.core
 
             if (!releaseChoices.CustomVersion?.IsPrerelease() ?? false)
             {
-                Console.WriteLine("Generating changelog...");
+                _messenger.Info("Generating changelog...");
                 releaseFlag = UpdateChangelog();
             }
             else
             {
-                Console.WriteLine("Creation of changelog skipped due to it being a pre-release.");
+                _messenger.Info("Creation of changelog skipped due to it being a pre-release.");
             }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
@@ -100,21 +102,21 @@ namespace gitrelease.core
 
             if (!releaseChoices.DryRun)
             {
-                Console.WriteLine("Creating commit...");
+                _messenger.Info("Creating commit...");
                 releaseFlag = AmendLastCommit(repo, version);
             }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
-            if (releaseChoices.DryRun && (!releaseChoices.CustomVersion?.IsPrerelease() ?? false))
+            if (!releaseChoices.DryRun && (!releaseChoices.CustomVersion?.IsPrerelease() ?? false))
             {
-                Console.WriteLine($"Creating tag name v{version.ToVersionString()}");
+                _messenger.Info($"Creating tag name v{version.ToVersionString()}");
                 releaseFlag = CreateTag(repo, version);
             }
             else
             {
-                Console.WriteLine("Creation of tag skipped due to this being a pre-release.");
+                _messenger.Info("Creation of tag skipped due to this being a pre-release.");
             }
 
             return releaseFlag;
@@ -133,16 +135,14 @@ namespace gitrelease.core
                 versionVNext = versionVNext.GetNewWithPreReleaseTag(releaseChoices.CustomVersion.PreReleaseTag);
             }
 
-            Console.WriteLine($"Current version is: {version} and it will be updated to {versionVNext}");
+            _messenger.Info($"Current version is: {version} and it will be updated to {versionVNext}");
 
             return versionVNext;
         }
 
         private static GitVersion InfuseCommitAndIncrement(IRepository repo, GitVersion gitVersion, ReleaseType releaseType)
         {
-            //var headTipSha = repo.Head.Tip.Id.Sha.Substring(0, 10);
             return GetUpdateVersion(gitVersion, releaseType);
-            //return new GitVersion(GetUpdateVersion(gitVersion, releaseType), headTipSha);
         }
 
         private static GitVersion GetUpdateVersion(GitVersion gitVersion, ReleaseType releaseType)
@@ -160,7 +160,7 @@ namespace gitrelease.core
             }
         }
 
-        private static ReleaseManagerFlags CreateACommit(IRepository repo, GitVersion version)
+        private ReleaseManagerFlags CreateACommit(IRepository repo, GitVersion version)
         {
             var result = Stage(repo);
 
@@ -176,13 +176,13 @@ namespace gitrelease.core
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _messenger.Error(ex);
             }
 
             return ReleaseManagerFlags.Unknown;
         }
 
-        private static ReleaseManagerFlags AmendLastCommit(IRepository repo, GitVersion version)
+        private ReleaseManagerFlags AmendLastCommit(IRepository repo, GitVersion version)
         {
             var result = Stage(repo);
 
@@ -201,13 +201,13 @@ namespace gitrelease.core
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _messenger.Error(ex);
             }
 
             return ReleaseManagerFlags.Unknown;
         }
 
-        private static ReleaseManagerFlags Stage(IRepository repo)
+        private ReleaseManagerFlags Stage(IRepository repo)
         {
             try
             {
@@ -227,13 +227,13 @@ namespace gitrelease.core
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _messenger.Error(e);
             }
 
             return ReleaseManagerFlags.Unknown;
         }
 
-        private static ReleaseManagerFlags CreateTag(IRepository repo, GitVersion version)
+        private ReleaseManagerFlags CreateTag(IRepository repo, GitVersion version)
         {
             try
             {
@@ -242,7 +242,7 @@ namespace gitrelease.core
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _messenger.Error(e);
                 return ReleaseManagerFlags.TagCreationFailed;
             }
         }
@@ -257,7 +257,7 @@ namespace gitrelease.core
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _messenger.Error(ex);
                 return ReleaseManagerFlags.ChangelogCreationFailed;
             }
         }
@@ -295,9 +295,6 @@ namespace gitrelease.core
 
                 switch (platform.Name?.ToLower())
                 {
-                    case "dll":
-                        ps.Add(platform.Name, new DLLPlatform(absolutePath));
-                        break;
                     case "ios":
                         ps.Add(platform.Name, new IOSPlatform(absolutePath));
                         break;
@@ -411,7 +408,7 @@ namespace gitrelease.core
             return ReleaseManagerFlags.Unknown;
         }
 
-        private static ReleaseManagerFlags ExecuteSafe(Func<ReleaseManagerFlags> func)
+        private ReleaseManagerFlags ExecuteSafe(Func<ReleaseManagerFlags> func)
         {
             try
             {
@@ -419,7 +416,7 @@ namespace gitrelease.core
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _messenger.Error(e);
             }
 
             return ReleaseManagerFlags.Unknown;
@@ -494,7 +491,7 @@ namespace gitrelease.core
                 {
                     new Platform()
                     {
-                        Name = "platform name, supported are [ios, droid, uwp]",
+                        Name = "platform name, supported are [ios, droid, uwp]. or it can be left empty in case of simple dotnet project.",
                         Path = "path to the root of the specified platforms project."
                     }
                 }
@@ -522,5 +519,11 @@ namespace gitrelease.core
 
             return isError ? ReleaseManagerFlags.NPMInitFailed : ReleaseManagerFlags.Ok;
         }
+    }
+
+    public interface IMessenger
+    {
+        void Info(string message);
+        void Error(Exception exception);
     }
 }

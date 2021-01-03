@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.Drawing;
 using System.IO;
 using gitrelease.core;
 
@@ -89,7 +90,7 @@ namespace gitrelease.cli
 
         private static int Init(string root)
         {
-            var releaseManager = new ReleaseManager(root);
+            var releaseManager = new ReleaseManager(root, CreateMessenger());
             var result = releaseManager.Initialize();
 
             if (result != ReleaseManagerFlags.Ok)
@@ -104,6 +105,11 @@ namespace gitrelease.cli
             return (int)result;
         }
 
+        private static IMessenger CreateMessenger()
+        {
+            return new ConsoleMessenger();
+        }
+
         private static int ReleaseSequence(string root, ReleaseType releaseType, string version, string prerelease, bool dryRun)
         {
             if (releaseType == ReleaseType.Custom && !GitVersion.IsValid(version))
@@ -114,7 +120,7 @@ namespace gitrelease.cli
                 return -1;
             }
 
-            var manager = new ReleaseManager(root == "." ? Directory.GetCurrentDirectory() : root);
+            var manager = new ReleaseManager(root == "." ? Directory.GetCurrentDirectory() : root, CreateMessenger());
 
             manager.Initialize();
 
@@ -136,7 +142,7 @@ namespace gitrelease.cli
 
         private static int GetVersion(string root, string platform)
         {
-            var manager = new ReleaseManager(root);
+            var manager = new ReleaseManager(root, CreateMessenger());
 
             manager.Initialize();
 
@@ -153,6 +159,19 @@ namespace gitrelease.cli
         private static void DumpMessage(ReleaseManagerFlags releaseManagerFlag)
         {
             Console.WriteLine(releaseManagerFlag.ToString());
+        }
+    }
+
+    internal class ConsoleMessenger : IMessenger
+    {
+        public void Info(string message)
+        {
+            Colorful.Console.WriteLineFormatted(message, Color.Yellow);
+        }
+
+        public void Error(Exception exception)
+        {
+            Colorful.Console.WriteLineFormatted(exception?.ToString(), Color.Red);
         }
     }
 }

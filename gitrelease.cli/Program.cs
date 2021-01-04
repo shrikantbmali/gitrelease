@@ -129,7 +129,7 @@ namespace gitrelease.cli
             string root,
             ReleaseType releaseType,
             string version,
-            string prerelease,
+            string preReleaseTag,
             bool dryRun,
             bool skipTag,
             bool skipChangelog)
@@ -150,10 +150,10 @@ namespace gitrelease.cli
             {
                 ReleaseType = releaseType,
                 CustomVersion = releaseType == ReleaseType.Custom
-                    ? GitVersion.Parse(version, prerelease)
-                    : string.IsNullOrEmpty(prerelease)
+                    ? GitVersion.Parse(version, preReleaseTag)
+                    : string.IsNullOrEmpty(preReleaseTag)
                         ? GitVersion.Empty
-                        : GitVersion.GetPrerelease(prerelease),
+                        : GitVersion.GetPrerelease(preReleaseTag),
                 DryRun = dryRun,
                 SkipTag = skipTag,
                 SkipChangelog = skipChangelog

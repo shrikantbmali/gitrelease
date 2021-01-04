@@ -1,4 +1,11 @@
-#### 1.5.6 (2021-01-04)
+#### 1.5.7-rc (2021-01-04)
+
+##### Bug Fixes
+
+* **PreRelease:**  fix pre-release-tag name variable name ([2971d728](https://github.com/shrknt35/release/commit/2971d728c6d6f9de87026641f8a646accf17aa90))
+* **Native:**  fix where native tag was not being accepted ([8b77e52d](https://github.com/shrknt35/release/commit/8b77e52d1c1ada94e3a9e3537d3e6827129df962))
+
+#### 1.5.6-rc (2021-01-04)
 
 ##### Bug Fixes
 

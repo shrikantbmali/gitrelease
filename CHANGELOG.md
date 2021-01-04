@@ -1,3 +1,9 @@
+#### 1.5.6 (2021-01-04)
+
+##### Bug Fixes
+
+* **Native:**  fix where native tag was not being accepted ([40ce38db](https://github.com/shrknt35/release/commit/40ce38dbbe7f12cc79d9fa9dde74cf109e5efd09))
+
 #### 1.5.5-rc (2021-01-04)
 
 ##### Chores

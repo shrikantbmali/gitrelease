@@ -448,7 +448,7 @@ namespace gitrelease.core
 
                     if (!generic)
                     {
-                        _messenger.Info("Setting up dll versioning.");
+                        _messenger.Info("Setting up dll version file.");
                         validityFlag = InitNbgv();
                     }
 

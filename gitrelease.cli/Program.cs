@@ -102,7 +102,7 @@ namespace gitrelease.cli
             return rootCommand.Invoke(args);
         }
 
-        private static int Init(string root, bool generic)
+        private static int Init(string root, bool native)
         {
             var releaseManager = new ReleaseManager(root, CreateMessenger());
 
@@ -114,7 +114,7 @@ namespace gitrelease.cli
                 return (int)result;
             }
 
-            result = releaseManager.SetupRepo(generic);
+            result = releaseManager.SetupRepo(native);
 
             DumpMessage(result);
             return (int)result;

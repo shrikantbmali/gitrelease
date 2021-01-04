@@ -25,21 +25,21 @@ namespace gitrelease.cli
                 new Option<bool>(
                     new [] { "--dry-run" , "-d"},
                     () => false,
-                    "Specify the root folder if the current executing directory is not a intended folder"));
+                    "Runs a command dry without crating a tag and a commit."));
             rootCommand.AddOption(
                 new Option<bool>(
-                    new [] { "--skip-changelog" , "-k"},
+                    new [] { "--skip-changelog" , "-c"},
                     () => false,
-                    "Specify the root folder if the current executing directory is not a intended folder"));
+                    "Specify if changelog creation should be skipped."));
             rootCommand.AddOption(
                 new Option<bool>(
                     new [] { "--skip-tag" , "-g"},
                     () => false,
-                    "Specify the root folder if the current executing directory is not a intended folder"));
+                    "Specify if tag creation should skipped"));
             rootCommand.AddOption(
                 new Option<string>(
-                    new [] { "--prerelease" , "-p"},
-                    "Any Prerelease tap you'd like to add to the version."));
+                    new [] { "--pre-release-tag" , "-p"},
+                    "Any pre release tap you'd like to add to the version."));
             rootCommand.AddArgument(
                 new Argument<ReleaseType>(
                     "release-type",
@@ -82,13 +82,18 @@ namespace gitrelease.cli
 
             var initCommand = new Command("init", "Initialized the repo for git-release workflow")
             {
-                Handler = CommandHandler.Create<string>(Init)
+                Handler = CommandHandler.Create<string, bool>(Init)
             };
 
             initCommand.AddOption(new Option<string>(
                 new [] { "--root", "-r"},
                 Directory.GetCurrentDirectory,
                 "Specify the root folder if the current executing directory is not a intended folder"));
+
+            initCommand.AddOption(new Option<bool>(
+                new [] { "--native", "-n"},
+                () => false,
+                "Select in case the project is not a xamarin project."));
 
             rootCommand.AddCommand(initCommand);
 
@@ -97,7 +102,7 @@ namespace gitrelease.cli
             return rootCommand.Invoke(args);
         }
 
-        private static int Init(string root)
+        private static int Init(string root, bool generic)
         {
             var releaseManager = new ReleaseManager(root, CreateMessenger());
 
@@ -109,7 +114,7 @@ namespace gitrelease.cli
                 return (int)result;
             }
 
-            result = releaseManager.SetupRepo();
+            result = releaseManager.SetupRepo(generic);
 
             DumpMessage(result);
             return (int)result;

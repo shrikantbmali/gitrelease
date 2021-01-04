@@ -7,6 +7,9 @@ namespace gitrelease.core
 {
     internal class ConfigFile
     {
+        [JsonProperty("is-generic-project")]
+        public bool IsGenericProject { get; set; }
+
         [JsonProperty("platforms")]
         public IEnumerable<Platform> Platforms { get; set; }
 

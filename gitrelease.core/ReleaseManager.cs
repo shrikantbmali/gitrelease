@@ -70,7 +70,7 @@ namespace gitrelease.core
             var version = DetermineNextVersion(repo, releaseChoices);
 
             _messenger.Info("Updating package version...");
-            var releaseFlag = UpdatePackageVersion(version);
+            var releaseFlag = UpdatePackageVersion(version, configFile.IsGenericProject);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
@@ -305,9 +305,9 @@ namespace gitrelease.core
             return new ReadOnlyDictionary<string, IPlatform>(ps);
         }
 
-        private ReleaseManagerFlags UpdatePackageVersion(GitVersion version)
+        private ReleaseManagerFlags UpdatePackageVersion(GitVersion version, bool isNativeProject)
         {
-            return _package.SetVersion(version);
+            return _package.SetVersion(version, isNativeProject);
         }
 
         private GitVersion GetCurrentVersion()
@@ -423,17 +423,19 @@ namespace gitrelease.core
                 : new[] { CreatePlatforms(_package.GetConfig().Platforms)[platformName].GetVersion() });
         }
 
-        public ReleaseManagerFlags SetupRepo()
+        public ReleaseManagerFlags SetupRepo(bool generic)
         {
             return ExecuteSafe(() =>
             {
                 return ExecuteRepoSafe(repo =>
                 {
+                    _messenger.Info("Staring Init sequence.");
                     var validityFlag = IsRepoReadyForSetup(repo);
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
                         return validityFlag;
 
+                    _messenger.Info("Initializing Changelog.");
                     validityFlag = InitNpm();
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
@@ -444,12 +446,16 @@ namespace gitrelease.core
                     if (validityFlag != ReleaseManagerFlags.Ok)
                         return validityFlag;
 
-                    validityFlag = InitNbgv();
+                    if (!generic)
+                    {
+                        _messenger.Info("Setting up dll versioning.");
+                        validityFlag = InitNbgv();
+                    }
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
                         return validityFlag;
 
-                    validityFlag = InitDefaultConfig();
+                    validityFlag = InitDefaultConfig(generic);
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
                         return validityFlag;
@@ -475,10 +481,11 @@ namespace gitrelease.core
             return isError ? ReleaseManagerFlags.ChangelogGeneratorInstallFailed : ReleaseManagerFlags.Ok;
         }
 
-        private ReleaseManagerFlags InitDefaultConfig()
+        private ReleaseManagerFlags InitDefaultConfig(bool generic)
         {
-            var save = new ConfigFile()
+            var save = new ConfigFile
             {
+                IsGenericProject = generic,
                 Platforms = new[]
                 {
                     new Platform()

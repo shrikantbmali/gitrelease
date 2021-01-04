@@ -23,14 +23,17 @@ namespace gitrelease.core
             return new GitVersion(json["version"]?.Value<string>() ?? string.Empty);
         }
 
-        public ReleaseManagerFlags SetVersion(GitVersion version)
+        public ReleaseManagerFlags SetVersion(GitVersion version, bool isNativeProject)
         {
             var result = UpdatePackageFile(version);
 
             if (result != ReleaseManagerFlags.Ok)
                 return result;
 
-            return UpdateVersionFile(version.ToVersionString());
+            if (!isNativeProject)
+                result = UpdateVersionFile(version.ToVersionString());
+            
+            return result;
         }
 
         private ReleaseManagerFlags UpdatePackageFile(GitVersion version)
@@ -72,7 +75,12 @@ namespace gitrelease.core
 
         public ConfigFile GetConfig()
         {
-            return Config.ParseFile(Path.Combine(_rootDir, ConfigFile.FixName));
+            return Config.ParseFile(GetConfigFilePath());
+        }
+
+        private string GetConfigFilePath()
+        {
+            return Path.Combine(_rootDir, ConfigFile.FixName);
         }
 
         public bool AreToolsAvailable()
@@ -84,10 +92,15 @@ namespace gitrelease.core
 
         public bool IsInitialized()
         {
-            var packageFile = GetPackageFilePath();
-            var versionFile = GetVersionFile();
+            if (!File.Exists(GetConfigFilePath()))
+                return false;
 
-            return File.Exists(packageFile) && File.Exists(versionFile);
+            var configFile = GetConfig();
+
+            if (!configFile.IsGenericProject && !File.Exists(GetVersionFile()))
+                return false;
+
+            return File.Exists(GetPackageFilePath());
         }
 
         private string GetVersionFile()

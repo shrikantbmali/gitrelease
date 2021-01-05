@@ -13,7 +13,7 @@ namespace gitrelease.cli
         {
             var rootCommand = new RootCommand
             {
-                Handler = CommandHandler.Create<string, ReleaseType, string, string, bool, bool, bool>(ReleaseSequence)
+                Handler = CommandHandler.Create<string, ReleaseType, string, string, bool, bool, bool, bool>(ReleaseSequence)
             };
 
             rootCommand.AddOption(
@@ -24,6 +24,11 @@ namespace gitrelease.cli
             rootCommand.AddOption(
                 new Option<bool>(
                     new [] { "--dry-run" , "-d"},
+                    () => false,
+                    "Runs a command dry without crating a tag and a commit."));
+            rootCommand.AddOption(
+                new Option<bool>(
+                    new [] { "--ignore-dirty" , "-i"},
                     () => false,
                     "Runs a command dry without crating a tag and a commit."));
             rootCommand.AddOption(
@@ -125,21 +130,22 @@ namespace gitrelease.cli
             return new ConsoleMessenger();
         }
 
-        private static int ReleaseSequence(
+        private static void ReleaseSequence(
             string root,
             ReleaseType releaseType,
             string version,
             string preReleaseTag,
             bool dryRun,
             bool skipTag,
-            bool skipChangelog)
+            bool skipChangelog,
+            bool ignoreDirty)
         {
             if (releaseType == ReleaseType.Custom && !GitVersion.IsValid(version))
             {
                 Console.WriteLine(
                     "when selecting custom version type, version must be provided in format {Major}.{Minor}.{Patch}");
 
-                return -1;
+                return;
             }
 
             var manager = new ReleaseManager(root == "." ? Directory.GetCurrentDirectory() : root, CreateMessenger());
@@ -156,12 +162,13 @@ namespace gitrelease.cli
                         : GitVersion.GetPrerelease(preReleaseTag),
                 DryRun = dryRun,
                 SkipTag = skipTag,
-                SkipChangelog = skipChangelog
+                SkipChangelog = skipChangelog,
+                IgnoreDirty = ignoreDirty
             });
 
             DumpMessage(releaseManagerFlags);
 
-            return (int)releaseManagerFlags;
+            return;// (int)releaseManagerFlags;
         }
 
         private static int GetVersion(string root, string platform)

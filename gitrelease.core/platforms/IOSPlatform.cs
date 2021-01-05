@@ -49,7 +49,7 @@ namespace gitrelease.core.platforms
             }
             else if (rootDict["CFBundleVersion"] is NSString nsString)
             {
-                nsString.Content = version.ToVersionString();
+                nsString.Content = version.BuildNumber;
             }
 
             PropertyListParser.SaveAsXml(rootDict, new FileInfo(plistFilePath));

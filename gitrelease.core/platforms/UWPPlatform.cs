@@ -117,10 +117,10 @@ namespace gitrelease.core.platforms
         public static string ToUWPSpecificVersionString(this GitVersion version)
         {
             return $"{version.Major}.{version.Minor}.{version.Patch}"
-                   + (version.IsPrerelease() ? "." + GetPrereleaseSpecificNumber(version.PreReleaseTag) : "0");
+                   + "." + (!string.IsNullOrEmpty(version.BuildNumber) ? version.BuildNumber : "0");
         }
 
-        private static object GetPrereleaseSpecificNumber(string versionPreReleaseTag)
+        private static object GetPreReleaseSpecificNumber(string versionPreReleaseTag)
         {
             return versionPreReleaseTag switch
             {

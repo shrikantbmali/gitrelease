@@ -44,7 +44,7 @@ namespace gitrelease.core
                 return ExecuteRepoSafe(repo =>
                 {
                     _messenger.Info("Validating repo...");
-                    var validityFlag = IsRepoReadyForRelease(repo);
+                    var validityFlag = IsRepoReadyForRelease(repo, releaseChoices);
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
                         return validityFlag;
@@ -55,7 +55,7 @@ namespace gitrelease.core
                         ? ReleaseManagerFlags.InvalidConfigFile
                         : Release(repo, config, releaseChoices);
 
-                    if(result == ReleaseManagerFlags.Ok && !releaseChoices.CustomVersion.IsPrerelease() && !releaseChoices.DryRun)
+                    if(result == ReleaseManagerFlags.Ok && !releaseChoices.CustomVersion.IsPreRelease() && !releaseChoices.DryRun)
                         _messenger.Info("To push changes to origin, use command: git push && git push --tags");
 
                     return result;
@@ -122,7 +122,7 @@ namespace gitrelease.core
                 ? releaseChoices.CustomVersion
                 : InfuseCommitAndIncrement(repo, version, releaseChoices.ReleaseType);
 
-            if (releaseChoices.CustomVersion?.IsPrerelease() ?? false)
+            if (releaseChoices.CustomVersion?.IsPreRelease() ?? false)
             {
                 versionVNext = versionVNext.GetNewWithPreReleaseTag(releaseChoices.CustomVersion.PreReleaseTag);
             }
@@ -134,22 +134,20 @@ namespace gitrelease.core
 
         private static GitVersion InfuseCommitAndIncrement(IRepository repo, GitVersion gitVersion, ReleaseType releaseType)
         {
-            return GetUpdateVersion(gitVersion, releaseType);
+            return GetUpdateVersion(gitVersion, releaseType, repo);
         }
 
-        private static GitVersion GetUpdateVersion(GitVersion gitVersion, ReleaseType releaseType)
+        private static GitVersion GetUpdateVersion(GitVersion gitVersion, ReleaseType releaseType,
+            IRepository repo)
         {
-            switch (releaseType)
+            return releaseType switch
             {
-                case ReleaseType.Major:
-                    return gitVersion.IncrementMajorAndGetNew();
-                case ReleaseType.Minor:
-                    return gitVersion.IncrementMinorAndGetNew();
-                case ReleaseType.Patch:
-                    return gitVersion.IncrementPatchAndGetNew();
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(releaseType), releaseType, null);
-            }
+                ReleaseType.Major => gitVersion.IncrementMajorAndGetNew(),
+                ReleaseType.Minor => gitVersion.IncrementMinorAndGetNew(),
+                ReleaseType.Patch => gitVersion.IncrementPatchAndGetNew(),
+                ReleaseType.BuildNumber => gitVersion.SetBuildNumberAndGetNew(repo.Commits.Count()),
+                _ => throw new ArgumentOutOfRangeException(nameof(releaseType), releaseType, null)
+            };
         }
 
         private ReleaseManagerFlags CreateACommit(IRepository repo, GitVersion version)
@@ -315,9 +313,9 @@ namespace gitrelease.core
             return _package.GetVersion();
         }
 
-        private ReleaseManagerFlags IsRepoReadyForRelease(IRepository repo)
+        private ReleaseManagerFlags IsRepoReadyForRelease(IRepository repo, ReleaseChoices releaseChoices)
         {
-            if (IsRepoDirty(repo))
+            if (IsRepoDirty(repo) && !releaseChoices.IgnoreDirty)
             {
                 return ReleaseManagerFlags.DirtyRepo;
             }
@@ -517,6 +515,20 @@ namespace gitrelease.core
             var (_, isError) = CommandExecutor.ExecuteCommand("npm", "init -f", _rootDir);
 
             return isError ? ReleaseManagerFlags.NPMInitFailed : ReleaseManagerFlags.Ok;
+        }
+
+        public void IncrementBuildVersion(string platform)
+        {
+            if (_package.IsInitialized())
+            {
+                var platforms = CreatePlatforms(_package.GetConfig().Platforms);
+
+                if (platforms.ContainsKey(platform))
+                {
+                    var version = platforms[platform].GetVersion();
+                    _messenger.Info(version);
+                }
+            }
         }
     }
 

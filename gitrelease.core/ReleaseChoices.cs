@@ -11,6 +11,8 @@
         public bool SkipTag { get; set; }
 
         public bool SkipChangelog { get; set; }
+
+        public bool IgnoreDirty { get; set; }
     }
 
     public enum ReleaseType
@@ -18,6 +20,7 @@
         Major,
         Minor,
         Patch,
+        BuildNumber,
         Custom
     }
 }

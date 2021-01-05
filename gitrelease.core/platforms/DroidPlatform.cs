@@ -40,7 +40,7 @@ namespace gitrelease.core.platforms
                     return (ReleaseManagerFlags.InvalidAndroidManifestFileMissingAttributes, new string[] { });
 
                 versionName.InnerText = version.ToVersionString();
-                versionCode.InnerText = GenerateVersionCode(version);
+                versionCode.InnerText = version.BuildNumber;
 
                 xml?.Save(manifestFilePath);
 
@@ -48,14 +48,6 @@ namespace gitrelease.core.platforms
             }
 
             return (ReleaseManagerFlags.Unknown, new string[] { });
-        }
-
-        private string GenerateVersionCode(GitVersion version)
-        {
-            return (
-                int.Parse(version.Major) * 100000000 +
-                int.Parse(version.Minor) * 100000 +
-                int.Parse(version.Patch) * 100).ToString();
         }
 
         private static XmlDocument LoadManifest(string manifestFilePath)

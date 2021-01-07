@@ -15,38 +15,43 @@ namespace gitrelease.cli
         {
             var rootCommand = new RootCommand
             {
-                Handler = CommandHandler.Create<string, ReleaseType, string, string, bool, bool, bool, bool>(ReleaseSequence),
+                Handler = CommandHandler.Create<string, ReleaseType, string, string, bool, bool, bool, bool, bool>(ReleaseSequence),
             };
 
             rootCommand.AddOption(
                 new Option<string>(
-                    new [] { "--root" , "-r"},
+                    new[] { "--root", "-r" },
                     ParseRoot,
                     true,
                     "Specify the root folder if the current executing directory is not a intended folder"));
+
             rootCommand.AddOption(
                 new Option<bool>(
-                    new [] { "--dry-run" , "-d"},
+                    new[] { "--find", "-f" },
+                    "Specifies that find a path up the directory chain."));
+            rootCommand.AddOption(
+                new Option<bool>(
+                    new[] { "--dry-run", "-d" },
                     () => false,
                     "Runs a command dry without crating a tag and a commit."));
             rootCommand.AddOption(
                 new Option<bool>(
-                    new [] { "--ignore-dirty" , "-i"},
+                    new[] { "--ignore-dirty", "-i" },
                     () => false,
                     "Runs a command dry without crating a tag and a commit."));
             rootCommand.AddOption(
                 new Option<bool>(
-                    new [] { "--skip-changelog" , "-c"},
+                    new[] { "--skip-changelog", "-c" },
                     () => false,
                     "Specify if changelog creation should be skipped."));
             rootCommand.AddOption(
                 new Option<bool>(
-                    new [] { "--skip-tag" , "-g"},
+                    new[] { "--skip-tag", "-g" },
                     () => false,
                     "Specify if tag creation should skipped"));
             rootCommand.AddOption(
                 new Option<string>(
-                    new [] { "--pre-release-tag" , "-p"},
+                    new[] { "--pre-release-tag", "-p" },
                     "Any pre release tap you'd like to add to the version."));
             rootCommand.AddArgument(
                 new Argument<ReleaseType>(
@@ -75,13 +80,13 @@ namespace gitrelease.cli
 
             getVersionCommand.AddOption(
                 new Option<string>(
-                    new [] { "--platform", "-t"},
+                    new[] { "--platform", "-t" },
                     () => "all",
                     "Gets version for specific platform."));
 
             getVersionCommand.AddOption(
                 new Option<string>(
-                    new [] { "--root", "-r"},
+                    new[] { "--root", "-r" },
                     ParseRoot,
                     true,
                     "Specify the root folder if the current executing directory is not a intended folder"));
@@ -95,13 +100,13 @@ namespace gitrelease.cli
             };
 
             initCommand.AddOption(new Option<string>(
-                new [] { "--root", "-r"},
+                new[] { "--root", "-r" },
                 ParseRoot,
                 true,
                 "Specify the root folder if the current executing directory is not a intended folder"));
 
             initCommand.AddOption(new Option<bool>(
-                new [] { "--native", "-n"},
+                new[] { "--native", "-n" },
                 () => false,
                 "Select in case the project is not a xamarin project."));
 
@@ -154,8 +159,13 @@ namespace gitrelease.cli
             bool dryRun,
             bool skipTag,
             bool skipChangelog,
-            bool ignoreDirty)
+            bool ignoreDirty,
+            bool find)
         {
+            if (find)
+            {
+                root = FindDirectory(root);
+            }
             if (releaseType == ReleaseType.Custom && !GitVersion.IsValid(version))
             {
                 Console.WriteLine(
@@ -185,6 +195,29 @@ namespace gitrelease.cli
             DumpMessage(releaseManagerFlags);
 
             return;// (int)releaseManagerFlags;
+        }
+
+        private static string FindDirectory(string root)
+        {
+            try
+            {
+                while (true)
+                {
+                    var configFile = Directory.GetFiles(root, "gitrelease.config.json");
+                    if (configFile.Any())
+                    {
+                        return root;
+                    }
+
+                    root = Path.GetDirectoryName(root);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return root;
+            }
         }
 
         private static int GetVersion(string root, string platform)

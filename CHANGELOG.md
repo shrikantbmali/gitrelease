@@ -1,3 +1,18 @@
+#### 1.5.8-rc (2021-01-07)
+
+##### Chores
+
+* **VersionUpdate:**  1.5.8-rc ([8f2edce0](https://github.com/shrknt35/release/commit/8f2edce011b1ac07f40d031908f0d951a45c4628))
+
+##### New Features
+
+* **BuildNumber:**  add ability to increment build number ([21891d50](https://github.com/shrknt35/release/commit/21891d504cae6fa69694749316f6074c28c340a9))
+
+##### Bug Fixes
+
+* **PreRelease:**  fix pre-release-tag name variable name ([dd40c6a1](https://github.com/shrknt35/release/commit/dd40c6a13e31e7b7e121f34ee86c8f9466f7eb14))
+* **Native:**  fix where native tag was not being accepted ([8b77e52d](https://github.com/shrknt35/release/commit/8b77e52d1c1ada94e3a9e3537d3e6827129df962))
+
 #### 1.5.7-rc (2021-01-04)
 
 ##### Bug Fixes

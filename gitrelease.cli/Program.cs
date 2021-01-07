@@ -1,8 +1,10 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.Parsing;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using gitrelease.core;
 
 namespace gitrelease.cli
@@ -13,13 +15,14 @@ namespace gitrelease.cli
         {
             var rootCommand = new RootCommand
             {
-                Handler = CommandHandler.Create<string, ReleaseType, string, string, bool, bool, bool, bool>(ReleaseSequence)
+                Handler = CommandHandler.Create<string, ReleaseType, string, string, bool, bool, bool, bool>(ReleaseSequence),
             };
 
             rootCommand.AddOption(
                 new Option<string>(
                     new [] { "--root" , "-r"},
-                    Directory.GetCurrentDirectory,
+                    ParseRoot,
+                    true,
                     "Specify the root folder if the current executing directory is not a intended folder"));
             rootCommand.AddOption(
                 new Option<bool>(
@@ -79,7 +82,8 @@ namespace gitrelease.cli
             getVersionCommand.AddOption(
                 new Option<string>(
                     new [] { "--root", "-r"},
-                    Directory.GetCurrentDirectory,
+                    ParseRoot,
+                    true,
                     "Specify the root folder if the current executing directory is not a intended folder"));
 
             rootCommand.AddCommand(getVersionCommand);
@@ -92,7 +96,8 @@ namespace gitrelease.cli
 
             initCommand.AddOption(new Option<string>(
                 new [] { "--root", "-r"},
-                Directory.GetCurrentDirectory,
+                ParseRoot,
+                true,
                 "Specify the root folder if the current executing directory is not a intended folder"));
 
             initCommand.AddOption(new Option<bool>(
@@ -105,6 +110,17 @@ namespace gitrelease.cli
             rootCommand.Parse(args);
 
             return rootCommand.Invoke(args);
+        }
+
+        private static string ParseRoot(ArgumentResult result)
+        {
+            var pathValue = result.Tokens.FirstOrDefault()?.Value;
+            if (string.IsNullOrEmpty(pathValue))
+            {
+                return Directory.GetCurrentDirectory();
+            }
+
+            return Path.IsPathRooted(pathValue) ? pathValue : Path.Combine(Directory.GetCurrentDirectory(), pathValue);
         }
 
         private static int Init(string root, bool native)

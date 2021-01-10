@@ -60,6 +60,11 @@ namespace gitrelease.core
                 versionString += $"-{PreReleaseTag}";
             }
 
+            if (!string.IsNullOrEmpty(BuildNumber))
+            {
+                versionString += $".{BuildNumber}";
+            }
+
             return versionString;
         }
 
@@ -96,6 +101,12 @@ namespace gitrelease.core
             return !string.IsNullOrEmpty(version) && TryParse(version, out _);
         }
 
+        public static GitVersion Parse(string version)
+        {
+            TryParse(version, out var gitVersion);
+            return gitVersion;
+        }
+
         private static bool TryParse(string version, out GitVersion gitVersion)
         {
             gitVersion = null;
@@ -104,18 +115,15 @@ namespace gitrelease.core
 
             var splits = version.Split(Separator);
 
-            if (splits.Length != 3)
+            if (splits.Length < 3 || splits.Length > 4)
                 return false;
 
-            gitVersion = new GitVersion(splits[0], splits[1], splits[2]);
+            gitVersion = new GitVersion(splits[0], splits[1], splits[2])
+            {
+                BuildNumber = splits.Length == 4 ? splits[3] : null
+            };
 
             return true;
-        }
-
-        public static GitVersion Parse(string version)
-        {
-            TryParse(version, out var gitVersion);
-            return gitVersion;
         }
 
         public static GitVersion Parse(string version, string preReleaseTag) =>

@@ -1,3 +1,9 @@
+#### 1.5.9-rc (2021-01-10)
+
+##### Chores
+
+* **VersionUpdate:**  1.5.9-rc ([a90ae724](https://github.com/shrknt35/release/commit/a90ae7240f1f1097810578e55b86eafe64e446f4))
+
 #### 1.5.9 (2021-01-10)
 
 ##### Chores

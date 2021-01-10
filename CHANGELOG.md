@@ -1,3 +1,25 @@
+#### 1.5.9 (2021-01-10)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.5.9 ([7878389d](https://github.com/shrknt35/release/commit/7878389d0ecb32b86bffa4ddc68cbdf3fe5ca8a3))
+  *  1.5.8-rc ([ebc6cbea](https://github.com/shrknt35/release/commit/ebc6cbeaeeb7c6c8eb0dd226c770e397ccba1314))
+
+##### New Features
+
+* **BuildNumber:**
+  *  include build number in the version string ([ba792083](https://github.com/shrknt35/release/commit/ba7920837b373a7d26097fee197285b9bff51f7b))
+  *  add ability to increment build number ([21891d50](https://github.com/shrknt35/release/commit/21891d504cae6fa69694749316f6074c28c340a9))
+
+##### Bug Fixes
+
+* **BuildNumber:**  build bumber should be part of main version string ([b19c8ba2](https://github.com/shrknt35/release/commit/b19c8ba225f4a24bef3e22874c4bb2aa54c9fcaa))
+* **FindFlag:**  add ability to find any folder up the change that has the config file ([e46ec531](https://github.com/shrknt35/release/commit/e46ec5310388d41e7b54f34c4c4f8dca326f113f))
+* **RelativePath:**  add ability to add relative root path ([e94cd322](https://github.com/shrknt35/release/commit/e94cd3222b3cd1c80cc495183632d6dba55948bc))
+* **PreRelease:**  fix pre-release-tag name variable name ([dd40c6a1](https://github.com/shrknt35/release/commit/dd40c6a13e31e7b7e121f34ee86c8f9466f7eb14))
+* **Native:**  fix where native tag was not being accepted ([8b77e52d](https://github.com/shrknt35/release/commit/8b77e52d1c1ada94e3a9e3537d3e6827129df962))
+
 #### 1.5.8-rc (2021-01-07)
 
 ##### Chores

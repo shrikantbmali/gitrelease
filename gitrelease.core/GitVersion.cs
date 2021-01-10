@@ -34,22 +34,8 @@ namespace gitrelease.core
             BuildNumber = gitVersion.BuildNumber;
         }
 
-        public GitVersion(string version)
+        public GitVersion(string version) : this(Parse(version))
         {
-            if(version == null)
-            {
-                throw new ArgumentNullException(nameof(version));
-            }
-
-            var versions = version.Split(Separator);
-
-            if (versions.Length != 3)
-                throw new ArgumentException(nameof(versions) + " is not in {major}.{minor}.{patch} format");
-
-            Major = versions[0];
-            Minor = versions[1];
-            Patch = GetPatch(versions[2]);
-            PreReleaseTag = GetPreReleaseTag(versions[2]);
         }
 
         public string ToVersionString()

@@ -22,9 +22,13 @@ jobs:
 
     - name: Restore Tools
       run: dotnet tool install --tool-path . nbgv
+    - name: Install GitRelease tool
+      run: dotnet tool install --tool-path . git-release --version 1.5.10-rc-0060-g3d0f2bad2e
 
     - name: Restore dependencies
       run: dotnet restore
+    - name: Update Version
+      run: ./gitrelease buildnumber -i -c -g -d -p rc -r .
     - name: Build
       run: dotnet build
     - name: Pack--

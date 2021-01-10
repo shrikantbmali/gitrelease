@@ -31,6 +31,7 @@ namespace gitrelease.core
             this(gitVersion.Major, gitVersion.Minor, gitVersion.Patch)
         {
             PreReleaseTag = gitVersion.PreReleaseTag;
+            BuildNumber = gitVersion.BuildNumber;
         }
 
         public GitVersion(string version)
@@ -70,7 +71,7 @@ namespace gitrelease.core
 
         public override string ToString()
         {
-            return $"{Major}.{Minor}.{Patch}" + (IsPreRelease() ? $"-{PreReleaseTag}" : string.Empty);
+            return ToVersionString();
         }
 
         public GitVersion IncrementMajorAndGetNew()

@@ -13,6 +13,8 @@
         public bool SkipChangelog { get; set; }
 
         public bool IgnoreDirty { get; set; }
+
+        public uint ChangelogCharacterLimit { get; set; }
     }
 
     public enum ReleaseType

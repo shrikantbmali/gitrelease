@@ -15,7 +15,7 @@ namespace gitrelease.cli
         {
             var rootCommand = new RootCommand
             {
-                Handler = CommandHandler.Create<string, ReleaseType, string, string, bool, bool, bool, bool, bool>(ReleaseSequence),
+                Handler = CommandHandler.Create<string, ReleaseType, string, string, bool, bool, bool, bool, bool, uint>(ReleaseSequence),
             };
 
             rootCommand.AddOption(
@@ -44,6 +44,11 @@ namespace gitrelease.cli
                     new[] { "--skip-changelog", "-c" },
                     () => false,
                     "Specify if changelog creation should be skipped."));
+            rootCommand.AddOption(
+                new Option<uint>(
+                    new[] { "--changelog-character-limit", "-l" },
+                    () => 0,
+                    "Specify the limit of characters limit for changelog file (strictly implemented for azure dev-ops limit of 5000 characters)."));
             rootCommand.AddOption(
                 new Option<bool>(
                     new[] { "--skip-tag", "-g" },
@@ -160,7 +165,8 @@ namespace gitrelease.cli
             bool skipTag,
             bool skipChangelog,
             bool ignoreDirty,
-            bool find)
+            bool find,
+            uint changelogCharacterLimit)
         {
             if (find)
             {
@@ -189,7 +195,8 @@ namespace gitrelease.cli
                 DryRun = dryRun,
                 SkipTag = skipTag,
                 SkipChangelog = skipChangelog,
-                IgnoreDirty = ignoreDirty
+                IgnoreDirty = ignoreDirty,
+                ChangelogCharacterLimit = changelogCharacterLimit
             });
 
             DumpMessage(releaseManagerFlags);

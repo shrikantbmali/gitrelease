@@ -90,7 +90,7 @@ namespace gitrelease.core
             if (!releaseChoices.SkipChangelog)
             {
                 _messenger.Info("Generating changelog...");
-                releaseFlag = UpdateChangelog();
+                releaseFlag = UpdateChangelog(releaseChoices.ChangelogCharacterLimit);
             }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
@@ -237,11 +237,24 @@ namespace gitrelease.core
             }
         }
 
-        private ReleaseManagerFlags UpdateChangelog()
+        private ReleaseManagerFlags UpdateChangelog(uint changelogCharacterLimit)
         {
             try
             {
                 var (_, isError) = CommandExecutor.ExecuteCommand("changelog", "generate", _rootDir);
+
+                if (!isError && changelogCharacterLimit > 0)
+                {
+                    var changelogFilePath = Path.Combine(_rootDir, "CHANGELOG.md");
+                    var readAllText = File.ReadAllText(changelogFilePath);
+
+                    if (readAllText.Length > changelogCharacterLimit)
+                    {
+                        var limitedLength = readAllText.Substring(0, (int)changelogCharacterLimit);
+
+                        File.WriteAllText(changelogFilePath, limitedLength);
+                    }
+                }
 
                 return isError ? ReleaseManagerFlags.ChangelogCreationFailed : ReleaseManagerFlags.Ok;
             }

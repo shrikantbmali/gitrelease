@@ -134,7 +134,7 @@ namespace gitrelease.core
 
         private static GitVersion InfuseCommitAndIncrement(IRepository repo, GitVersion gitVersion, ReleaseType releaseType)
         {
-            return GetUpdateVersion(gitVersion, releaseType, repo);
+            return GetUpdateVersion(gitVersion, releaseType, repo).SetBuildNumberAndGetNew(GetBuildNumber(repo));
         }
 
         private static GitVersion GetUpdateVersion(GitVersion gitVersion, ReleaseType releaseType,
@@ -145,9 +145,14 @@ namespace gitrelease.core
                 ReleaseType.Major => gitVersion.IncrementMajorAndGetNew(),
                 ReleaseType.Minor => gitVersion.IncrementMinorAndGetNew(),
                 ReleaseType.Patch => gitVersion.IncrementPatchAndGetNew(),
-                ReleaseType.BuildNumber => gitVersion.SetBuildNumberAndGetNew(repo.Commits.Count()),
+                ReleaseType.BuildNumber => gitVersion.SetBuildNumberAndGetNew(GetBuildNumber(repo)),
                 _ => throw new ArgumentOutOfRangeException(nameof(releaseType), releaseType, null)
             };
+        }
+
+        private static int GetBuildNumber(IRepository repo)
+        {
+            return repo.Commits.Count();
         }
 
         private ReleaseManagerFlags CreateACommit(IRepository repo, GitVersion version)

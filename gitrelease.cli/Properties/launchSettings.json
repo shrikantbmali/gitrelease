@@ -2,7 +2,7 @@
   "profiles": {
     "gitrelease.cli": {
       "commandName": "Project",
-      "commandLineArgs": "BuildNumber -r C:\\Users\\ShrikantMali\\sandbox\\ac\\main --dry-run --skip-changelog --skip-tag --pre-release-tag rc -i"
+      "commandLineArgs": "patch -r C:\\Users\\ShrikantMali\\sandbox\\ac\\main --dry-run --skip-tag --pre-release-tag rc -i"
     }
   }
 }

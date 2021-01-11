@@ -62,17 +62,29 @@ namespace gitrelease.core
 
         public GitVersion IncrementMajorAndGetNew()
         {
-            return new GitVersion((int.Parse(Major) + 1).ToString(), Minor, Patch);
+            return new GitVersion((int.Parse(Major) + 1).ToString(), Minor, Patch)
+            {
+                BuildNumber = this.BuildNumber,
+                PreReleaseTag = this.PreReleaseTag
+            };
         }
 
         public GitVersion IncrementMinorAndGetNew()
         {
-            return new GitVersion(Major, (int.Parse(Minor) + 1).ToString(), Patch);
+            return new GitVersion(Major, (int.Parse(Minor) + 1).ToString(), Patch)
+            {
+                BuildNumber = this.BuildNumber,
+                PreReleaseTag = this.PreReleaseTag
+            };
         }
 
         public GitVersion IncrementPatchAndGetNew()
         {
-            return new GitVersion(Major, Minor, (int.Parse(Patch) + 1).ToString());
+            return new GitVersion(Major, Minor, (int.Parse(Patch) + 1).ToString())
+            {
+                BuildNumber = this.BuildNumber,
+                PreReleaseTag = this.PreReleaseTag
+            };
         }
 
         public GitVersion GetNewWithPreReleaseTag(string preReleaseTag)
@@ -105,9 +117,21 @@ namespace gitrelease.core
             if (splits.Length < 3 || splits.Length > 4)
                 return false;
 
-            gitVersion = new GitVersion(splits[0], splits[1], splits[2])
+            var patch = splits[2];
+
+            var patchSplit = patch.Split('-');
+            var preRelease = string.Empty;
+
+            if (patchSplit.Length == 2)
             {
-                BuildNumber = splits.Length == 4 ? splits[3] : null
+                patch = patchSplit[0];
+                preRelease = patchSplit[1];
+            }
+
+            gitVersion = new GitVersion(splits[0], splits[1], patch)
+            {
+                BuildNumber = splits.Length == 4 ? splits[3] : null,
+                PreReleaseTag = preRelease
             };
 
             return true;
@@ -116,25 +140,6 @@ namespace gitrelease.core
         public static GitVersion Parse(string version, string preReleaseTag) =>
             Parse(version).GetNewWithPreReleaseTag(preReleaseTag);
 
-        private static string GetPreReleaseTag(string version)
-        {
-            var strings = version.Split(PreReleaseSeparator);
-
-            if (strings.Length == 2)
-            {
-                return strings[1];
-            }
-
-            return string.Empty;
-        }
-
-        private static string GetPatch(string version)
-        {
-            var strings = version.Split(PreReleaseSeparator);
-
-            return strings[0];
-        }
-
         public bool IsPreRelease()
         {
             return !string.IsNullOrEmpty(PreReleaseTag);
@@ -142,7 +147,7 @@ namespace gitrelease.core
 
         public static GitVersion GetPrerelease(string preRelease)
         {
-            return new GitVersion("", "", "")
+            return new GitVersion("0", "0", "0")
             {
                 PreReleaseTag = preRelease
             };

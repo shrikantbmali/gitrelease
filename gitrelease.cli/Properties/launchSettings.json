@@ -2,7 +2,7 @@
   "profiles": {
     "gitrelease.cli": {
       "commandName": "Project",
-      "commandLineArgs": "patch -r C:\\Users\\ShrikantMali\\sandbox\\ac\\main --dry-run --skip-tag --pre-release-tag rc -i -l 4999"
+      "commandLineArgs": "custom 0.2.0 -d -g -r C:\\Users\\ShrikantMali\\sandbox\\ac\\main -i"
     }
   }
 }

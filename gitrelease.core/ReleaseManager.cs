@@ -41,7 +41,7 @@ namespace gitrelease.core
         {
             return ExecuteSafe(() =>
             {
-                return ExecuteRepoSafe(repo =>
+                return ExecuteRepoSafe(releaseChoices.IgnoreDirty, repo =>
                 {
                     _messenger.Info("Validating repo...");
                     var validityFlag = IsRepoReadyForRelease(repo, releaseChoices);
@@ -116,11 +116,9 @@ namespace gitrelease.core
 
         private GitVersion DetermineNextVersion(IRepository repo, ReleaseChoices releaseChoices)
         {
-            var version = GetCurrentVersion();
+            var version = GetCurrentVersion(releaseChoices);
 
-            var versionVNext = releaseChoices.ReleaseType == ReleaseType.Custom
-                ? releaseChoices.CustomVersion
-                : InfuseCommitAndIncrement(repo, version, releaseChoices.ReleaseType);
+            var versionVNext = InfuseCommitAndIncrement(repo, version, releaseChoices.ReleaseType);
 
             if (releaseChoices.CustomVersion?.IsPreRelease() ?? false)
             {
@@ -145,6 +143,7 @@ namespace gitrelease.core
                 ReleaseType.Major => gitVersion.IncrementMajorAndGetNew(),
                 ReleaseType.Minor => gitVersion.IncrementMinorAndGetNew(),
                 ReleaseType.Patch => gitVersion.IncrementPatchAndGetNew(),
+                ReleaseType.Custom => gitVersion,
                 ReleaseType.BuildNumber => gitVersion.SetBuildNumberAndGetNew(GetBuildNumber(repo)),
                 _ => throw new ArgumentOutOfRangeException(nameof(releaseType), releaseType, null)
             };
@@ -326,9 +325,11 @@ namespace gitrelease.core
             return _package.SetVersion(version, isNativeProject);
         }
 
-        private GitVersion GetCurrentVersion()
+        private GitVersion GetCurrentVersion(ReleaseChoices releaseChoices)
         {
-            return _package.GetVersion();
+            return releaseChoices.ReleaseType == ReleaseType.Custom
+                ? releaseChoices.CustomVersion
+                : _package.GetVersion();
         }
 
         private ReleaseManagerFlags IsRepoReadyForRelease(IRepository repo, ReleaseChoices releaseChoices)
@@ -386,7 +387,8 @@ namespace gitrelease.core
             return repo.RetrieveStatus(new StatusOptions())?.IsDirty ?? true;
         }
 
-        private ReleaseManagerFlags ExecuteRepoSafe(Func<IRepository, ReleaseManagerFlags> func)
+        private ReleaseManagerFlags ExecuteRepoSafe(bool isIgnoreDirty,
+            Func<IRepository, ReleaseManagerFlags> func)
         {
             using var repo = new Repository(_rootDir);
             var repoHead = repo.Head;
@@ -406,7 +408,10 @@ namespace gitrelease.core
             }
             finally
             {
-                if (result != ReleaseManagerFlags.Ok && result != ReleaseManagerFlags.DirtyRepo)
+                var shouldResetRepo = result != ReleaseManagerFlags.Ok &&
+                                      result != ReleaseManagerFlags.DirtyRepo &&
+                                      !isIgnoreDirty;
+                if (shouldResetRepo)
                 {
                     repo.Reset(ResetMode.Hard, repoHead.Tip);
                     repo.RemoveUntrackedFiles();
@@ -432,7 +437,7 @@ namespace gitrelease.core
 
         public IEnumerable<string> GetVersion(string platformName)
         {
-            var list = new List<string> {GetCurrentVersion().ToString()};
+            var list = new List<string> {GetCurrentVersion(new ReleaseChoices()).ToString()};
 
             return list.Union(platformName == "all"
                 ? CreatePlatforms(_package.GetConfig().Platforms).Select(p => p.Value.GetVersion()).ToArray()
@@ -443,7 +448,7 @@ namespace gitrelease.core
         {
             return ExecuteSafe(() =>
             {
-                return ExecuteRepoSafe(repo =>
+                return ExecuteRepoSafe(false, repo =>
                 {
                     _messenger.Info("Staring Init sequence.");
                     var validityFlag = IsRepoReadyForSetup(repo);

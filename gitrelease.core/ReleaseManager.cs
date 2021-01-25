@@ -84,7 +84,7 @@ namespace gitrelease.core
                 return releaseFlag;
 
             if(!releaseChoices.DryRun)
-                releaseFlag = CreateACommit(repo, nextVersion);
+                releaseFlag = CreateACommit(repo, nextVersion, configFile);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
@@ -107,7 +107,7 @@ namespace gitrelease.core
             if (!releaseChoices.DryRun)
             {
                 _messenger.Info("Creating commit...");
-                releaseFlag = AmendLastCommit(repo, nextVersion);
+                releaseFlag = AmendLastCommit(repo, nextVersion, configFile);
             }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
@@ -120,7 +120,7 @@ namespace gitrelease.core
         {
             var version = GetCurrentVersion(releaseChoices);
 
-            var versionVNext = InfuseCommitAndIncrement(repo, version, releaseChoices.ReleaseType);
+            var versionVNext = Increment(repo, version, releaseChoices.ReleaseType);
 
             if (releaseChoices.CustomVersion?.IsPreRelease() ?? false)
             {
@@ -132,7 +132,7 @@ namespace gitrelease.core
             return versionVNext;
         }
 
-        private static GitVersion InfuseCommitAndIncrement(IRepository repo, GitVersion gitVersion, ReleaseType releaseType)
+        private static GitVersion Increment(IRepository repo, GitVersion gitVersion, ReleaseType releaseType)
         {
             return GetUpdateVersion(gitVersion, releaseType, repo).SetBuildNumberAndGetNew(GetBuildNumber(repo));
         }
@@ -142,9 +142,9 @@ namespace gitrelease.core
         {
             return releaseType switch
             {
-                ReleaseType.Major => gitVersion.IncrementMajorAndGetNew(),
-                ReleaseType.Minor => gitVersion.IncrementMinorAndGetNew(),
-                ReleaseType.Patch => gitVersion.IncrementPatchAndGetNew(),
+                ReleaseType.Major => gitVersion.IncrementMajor().ResetMinor().ResetPatch(),
+                ReleaseType.Minor => gitVersion.IncrementMinor().ResetPatch(),
+                ReleaseType.Patch => gitVersion.IncrementPatch(),
                 ReleaseType.Custom => gitVersion,
                 ReleaseType.BuildNumber => gitVersion.SetBuildNumberAndGetNew(GetBuildNumber(repo)),
                 _ => throw new ArgumentOutOfRangeException(nameof(releaseType), releaseType, null)
@@ -156,7 +156,7 @@ namespace gitrelease.core
             return repo.Commits.Count();
         }
 
-        private ReleaseManagerFlags CreateACommit(IRepository repo, GitVersion version)
+        private ReleaseManagerFlags CreateACommit(IRepository repo, GitVersion version, ConfigFile configFile)
         {
             var result = Stage(repo);
 
@@ -165,7 +165,7 @@ namespace gitrelease.core
 
             try
             {
-                var sign = repo.Config.BuildSignature(DateTime.Now);
+                var sign = BuildSignature(repo, configFile);
                 repo.Commit($"chore(VersionUpdate): {version.ToVersionString()}", sign, sign);
 
                 return ReleaseManagerFlags.Ok;
@@ -178,7 +178,7 @@ namespace gitrelease.core
             return ReleaseManagerFlags.Unknown;
         }
 
-        private ReleaseManagerFlags AmendLastCommit(IRepository repo, GitVersion version)
+        private ReleaseManagerFlags AmendLastCommit(IRepository repo, GitVersion version, ConfigFile configFile)
         {
             var result = Stage(repo);
 
@@ -187,7 +187,7 @@ namespace gitrelease.core
 
             try
             {
-                var sign = repo.Config.BuildSignature(DateTime.Now);
+                var sign = BuildSignature(repo, configFile);
                 repo.Commit($"chore(VersionUpdate): {version.ToVersionString()}", sign, sign, new CommitOptions()
                 {
                     AmendPreviousCommit = true,
@@ -201,6 +201,13 @@ namespace gitrelease.core
             }
 
             return ReleaseManagerFlags.Unknown;
+        }
+
+        private static Signature BuildSignature(IRepository repo, ConfigFile configFile)
+        {
+            var signature = repo.Config.BuildSignature(DateTime.Now);
+
+            return signature;
         }
 
         private ReleaseManagerFlags Stage(IRepository repo)

@@ -60,7 +60,7 @@ namespace gitrelease.core
             return ToVersionString();
         }
 
-        public GitVersion IncrementMajorAndGetNew()
+        public GitVersion IncrementMajor()
         {
             return new GitVersion((int.Parse(Major) + 1).ToString(), Minor, Patch)
             {
@@ -69,7 +69,7 @@ namespace gitrelease.core
             };
         }
 
-        public GitVersion IncrementMinorAndGetNew()
+        public GitVersion IncrementMinor()
         {
             return new GitVersion(Major, (int.Parse(Minor) + 1).ToString(), Patch)
             {
@@ -78,9 +78,27 @@ namespace gitrelease.core
             };
         }
 
-        public GitVersion IncrementPatchAndGetNew()
+        public GitVersion IncrementPatch()
         {
             return new GitVersion(Major, Minor, (int.Parse(Patch) + 1).ToString())
+            {
+                BuildNumber = this.BuildNumber,
+                PreReleaseTag = this.PreReleaseTag
+            };
+        }
+
+        public GitVersion ResetMinor()
+        {
+            return new GitVersion(Major, 0.ToString(), Patch)
+            {
+                BuildNumber = this.BuildNumber,
+                PreReleaseTag = this.PreReleaseTag
+            };
+        }
+
+        public GitVersion ResetPatch()
+        {
+            return new GitVersion(Major, Minor, 0.ToString())
             {
                 BuildNumber = this.BuildNumber,
                 PreReleaseTag = this.PreReleaseTag

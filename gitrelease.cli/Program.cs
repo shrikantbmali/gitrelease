@@ -15,7 +15,7 @@ namespace gitrelease.cli
         {
             var rootCommand = new RootCommand
             {
-                Handler = CommandHandler.Create<string, ReleaseType, string, string, bool, bool, bool, bool, bool, uint>(ReleaseSequence),
+                Handler = CommandHandler.Create<string, ReleaseType, string, string, bool, bool, bool, bool, uint, string, ChangeLogType>(ReleaseSequence)
             };
 
             rootCommand.AddOption(
@@ -25,10 +25,6 @@ namespace gitrelease.cli
                     true,
                     "Specify the root folder if the current executing directory is not a intended folder"));
 
-            rootCommand.AddOption(
-                new Option<bool>(
-                    new[] { "--find", "-f" },
-                    "Specifies that find a path up the directory chain."));
             rootCommand.AddOption(
                 new Option<bool>(
                     new[] { "--dry-run", "-d" },
@@ -49,6 +45,16 @@ namespace gitrelease.cli
                     new[] { "--changelog-character-limit", "-l" },
                     () => 0,
                     "Specify the limit of characters limit for changelog file (strictly implemented for azure dev-ops limit of 5000 characters)."));
+            rootCommand.AddOption(
+                new Option<string>(
+                    new[] { "--changelog-filename", "-f" },
+                    () => "CHANGELOG.md",
+                    "Specify the changelog filename."));
+            rootCommand.AddOption(
+                new Option<ChangeLogType>(
+                    new[] { "--changelog-type", "-h" },
+                    () => ChangeLogType.All,
+                    "Specify the changelog type."));
             rootCommand.AddOption(
                 new Option<bool>(
                     new[] { "--skip-tag", "-g" },
@@ -165,13 +171,12 @@ namespace gitrelease.cli
             bool skipTag,
             bool skipChangelog,
             bool ignoreDirty,
-            bool find,
-            uint changelogCharacterLimit)
+            uint changelogCharacterLimit,
+            string changelogFileName,
+            ChangeLogType changeLogType)
         {
-            if (find)
-            {
-                root = FindDirectory(root);
-            }
+            root = FindDirectory(root);
+
             if (releaseType == ReleaseType.Custom && !GitVersion.IsValid(version))
             {
                 Console.WriteLine(
@@ -196,7 +201,9 @@ namespace gitrelease.cli
                 SkipTag = skipTag,
                 SkipChangelog = skipChangelog,
                 IgnoreDirty = ignoreDirty,
-                ChangelogCharacterLimit = changelogCharacterLimit
+                ChangelogCharacterLimit = changelogCharacterLimit,
+                ChangelogFileName = changelogFileName,
+                ChangeLogType = changeLogType
             });
 
             DumpMessage(releaseManagerFlags);
@@ -210,7 +217,7 @@ namespace gitrelease.cli
             {
                 while (true)
                 {
-                    var configFile = Directory.GetFiles(root, "gitrelease.config.json");
+                    var configFile = Directory.GetFiles(root, ConfigFileName.FixName);
                     if (configFile.Any())
                     {
                         return root;

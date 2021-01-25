@@ -5,6 +5,11 @@ using Newtonsoft.Json;
 
 namespace gitrelease.core
 {
+    public class ConfigFileName
+    {
+        public const string FixName = "gitrelease.config.json";
+    }
+
     internal class ConfigFile
     {
         [JsonProperty("is-generic-project")]
@@ -12,9 +17,6 @@ namespace gitrelease.core
 
         [JsonProperty("platforms")]
         public IEnumerable<Platform> Platforms { get; set; }
-
-        [JsonIgnore]
-        public const string FixName = "gitrelease.config.json";
     }
 
     internal struct Platform

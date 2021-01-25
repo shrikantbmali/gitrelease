@@ -80,7 +80,7 @@ namespace gitrelease.core
 
         private string GetConfigFilePath()
         {
-            return Path.Combine(_rootDir, ConfigFile.FixName);
+            return Path.Combine(_rootDir, ConfigFileName.FixName);
         }
 
         public bool AreToolsAvailable()

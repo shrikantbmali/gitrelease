@@ -67,30 +67,38 @@ namespace gitrelease.core
         {
             _messenger.Info("Starting release sequence.");
 
-            var version = DetermineNextVersion(repo, releaseChoices);
+            var currentVersion = GetCurrentVersion(releaseChoices);
+
+            var nextVersion = DetermineNextVersion(repo, releaseChoices);
 
             _messenger.Info("Updating package version...");
-            var releaseFlag = UpdatePackageVersion(version, configFile.IsGenericProject);
+            var releaseFlag = UpdatePackageVersion(nextVersion, configFile.IsGenericProject);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
             _messenger.Info("Updating platform version...");
-            releaseFlag = UpdatePlatformVersions(version, configFile);
+            releaseFlag = UpdatePlatformVersions(nextVersion, configFile);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
             if(!releaseChoices.DryRun)
-                releaseFlag = CreateACommit(repo, version);
+                releaseFlag = CreateACommit(repo, nextVersion);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
+            if (!releaseChoices.DryRun && !releaseChoices.SkipTag)
+            {
+                _messenger.Info($"Creating tag name v{nextVersion.ToVersionString()}");
+                releaseFlag = CreateTag(repo, nextVersion);
+            }
+
             if (!releaseChoices.SkipChangelog)
             {
                 _messenger.Info("Generating changelog...");
-                releaseFlag = UpdateChangelog(releaseChoices.ChangelogCharacterLimit);
+                releaseFlag = UpdateChangelog(releaseChoices, currentVersion, nextVersion);
             }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
@@ -99,17 +107,11 @@ namespace gitrelease.core
             if (!releaseChoices.DryRun)
             {
                 _messenger.Info("Creating commit...");
-                releaseFlag = AmendLastCommit(repo, version);
+                releaseFlag = AmendLastCommit(repo, nextVersion);
             }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
-
-            if (!releaseChoices.DryRun && !releaseChoices.SkipTag)
-            {
-                _messenger.Info($"Creating tag name v{version.ToVersionString()}");
-                releaseFlag = CreateTag(repo, version);
-            }
 
             return releaseFlag;
         }
@@ -241,20 +243,27 @@ namespace gitrelease.core
             }
         }
 
-        private ReleaseManagerFlags UpdateChangelog(uint changelogCharacterLimit)
+        private ReleaseManagerFlags UpdateChangelog(ReleaseChoices releaseChoices, GitVersion current, GitVersion nextVersion)
         {
             try
             {
-                var (_, isError) = CommandExecutor.ExecuteCommand("changelog", "generate", _rootDir);
+                var changelogFileName = releaseChoices.ChangelogFileName ?? "CHANGELOG.md";
 
-                if (!isError && changelogCharacterLimit > 0)
+                var args =
+                    $"generate --file {changelogFileName}" + (releaseChoices.ChangeLogType == ChangeLogType.LastTwoTags
+                        ? $" --tag v{current}..v{nextVersion}"
+                        : string.Empty);
+
+                var (_, isError) = CommandExecutor.ExecuteCommand("changelog", args, _rootDir);
+
+                if (!isError && releaseChoices.ChangelogCharacterLimit > 0)
                 {
-                    var changelogFilePath = Path.Combine(_rootDir, "CHANGELOG.md");
+                    var changelogFilePath = Path.Combine(_rootDir, changelogFileName);
                     var readAllText = File.ReadAllText(changelogFilePath);
 
-                    if (readAllText.Length > changelogCharacterLimit)
+                    if (readAllText.Length > releaseChoices.ChangelogCharacterLimit)
                     {
-                        var limitedLength = readAllText.Substring(0, (int)changelogCharacterLimit);
+                        var limitedLength = readAllText.Substring(0, (int)releaseChoices.ChangelogCharacterLimit);
 
                         File.WriteAllText(changelogFilePath, limitedLength);
                     }
@@ -515,7 +524,7 @@ namespace gitrelease.core
                         Path = "path to the root of the specified platforms project."
                     }
                 }
-            }.Save(Path.Combine(_rootDir, ConfigFile.FixName));
+            }.Save(Path.Combine(_rootDir, ConfigFileName.FixName));
 
             return save ? ReleaseManagerFlags.Ok : ReleaseManagerFlags.ConfigFileCreationFailed;
         }

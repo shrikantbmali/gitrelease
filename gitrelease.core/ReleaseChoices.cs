@@ -15,6 +15,16 @@
         public bool IgnoreDirty { get; set; }
 
         public uint ChangelogCharacterLimit { get; set; }
+
+        public ChangeLogType ChangeLogType { get; set; }
+        
+        public string ChangelogFileName { get; set; }
+    }
+
+    public enum ChangeLogType
+    {
+        All,
+        LastTwoTags,
     }
 
     public enum ReleaseType

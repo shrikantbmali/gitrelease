@@ -2,7 +2,7 @@
   "profiles": {
     "gitrelease.cli": {
       "commandName": "Project",
-      "commandLineArgs": "custom 0.2.0 -d -g -r C:\\Users\\ShrikantMali\\sandbox\\ac\\main -i"
+      "commandLineArgs": "buildnumber -r C:\\Users\\ShrikantMali\\sandbox\\ac\\main -i -h lasttwotags -f release_notes.md"
     }
   }
 }

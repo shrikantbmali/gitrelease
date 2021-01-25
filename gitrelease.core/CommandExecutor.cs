@@ -29,10 +29,7 @@ namespace gitrelease.core
 
                 process.WaitForExit();
 
-                var output = process.StandardOutput.ReadToEnd();
-                var err = process.StandardError.ReadToEnd();
-
-                return (string.IsNullOrEmpty(err) ? output : err, !string.IsNullOrEmpty(err));
+                return IsError(process);
             }
             catch (Exception ex)
             {
@@ -64,13 +61,22 @@ namespace gitrelease.core
 
                 Console.WriteLine($"Out : {output} \n Err {err}");
 
-                return (process.ExitCode >= 0 ? output : err, process.ExitCode < 0);
+                return IsError(process);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
                 return (string.Empty, true);
             }
+        }
+
+        private static (string output, bool isError) IsError(Process process)
+        {
+            var output = process.StandardOutput.ReadToEnd();
+            var err = process.StandardError.ReadToEnd();
+
+            var isError = process.ExitCode == 0;
+            return (isError ? output : err, isError);
         }
     }
 

@@ -75,7 +75,7 @@ namespace gitrelease.core
             var output = process.StandardOutput.ReadToEnd();
             var err = process.StandardError.ReadToEnd();
 
-            var isError = process.ExitCode == 0;
+            var isError = process.ExitCode != 0;
             return (isError ? output : err, isError);
         }
     }

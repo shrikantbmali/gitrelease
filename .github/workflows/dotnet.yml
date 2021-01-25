@@ -32,6 +32,6 @@ jobs:
     - name: Check version
       run: ./nbgv get-version
     - name: Push
-      run: dotnet nuget push ./nupkg/git-release.$(./nbgv get-version -v NuGetPackageVersion).nupkg --api-key ${{secrets.NUGETTOKEN}} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ./nupkg/git-release.$(./nbgv get-version -v Version).nupkg --api-key ${{secrets.NUGETTOKEN}} --source https://api.nuget.org/v3/index.json
 
 

@@ -26,9 +26,9 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build
+      run: dotnet build -c RELEASE
     - name: Pack--
-      run: dotnet pack 
+      run: dotnet pack -c RELEASE
     - name: Check version
       run: ./nbgv get-version
     - name: Push

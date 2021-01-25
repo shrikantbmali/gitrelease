@@ -6,7 +6,7 @@ using Newtonsoft.Json.Converters;
 
 namespace gitrelease.core
 {
-    internal static class CommandExecutor
+    public static class CommandExecutor
     {
         public static (string output, bool isError) ExecuteFile(string command, string args)
         {
@@ -51,7 +51,7 @@ namespace gitrelease.core
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
                 };
 
                 var process = new Process {StartInfo = procStartInfo};
@@ -61,6 +61,8 @@ namespace gitrelease.core
 
                 var output = process?.StandardOutput.ReadToEnd();
                 var err = process?.StandardError.ReadToEnd();
+
+                Console.WriteLine($"Out : {output} \n Err {err}");
 
                 return (process.ExitCode >= 0 ? output : err, process.ExitCode < 0);
             }

@@ -85,7 +85,7 @@ namespace gitrelease.core
 
         public bool AreToolsAvailable()
         {
-            var result = CommandExecutor.ExecuteCommand("npm", "", _rootDir);
+            var result = CommandExecutor.ExecuteCommand("npm", "--version", _rootDir);
 
             return result.isError;
         }

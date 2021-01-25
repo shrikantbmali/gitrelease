@@ -173,7 +173,7 @@ namespace gitrelease.cli
             bool ignoreDirty,
             uint changelogCharacterLimit,
             string changelogFileName,
-            ChangeLogType changeLogType)
+            ChangeLogType changelogType)
         {
             root = FindDirectory(root);
 
@@ -203,7 +203,7 @@ namespace gitrelease.cli
                 IgnoreDirty = ignoreDirty,
                 ChangelogCharacterLimit = changelogCharacterLimit,
                 ChangelogFileName = changelogFileName,
-                ChangeLogType = changeLogType
+                ChangeLogType = changelogType
             });
 
             DumpMessage(releaseManagerFlags);

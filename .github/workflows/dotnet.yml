@@ -28,7 +28,7 @@ jobs:
     - name: Build
       run: dotnet build -c RELEASE
     - name: Pack--
-      run: dotnet pack -c RELEASE
+      run: dotnet pack -c RELEASE /p:PublicRelease=true
     - name: Check version
       run: ./nbgv get-version
     - name: Push

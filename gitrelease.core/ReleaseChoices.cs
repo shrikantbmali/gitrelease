@@ -23,8 +23,8 @@
 
     public enum ChangeLogType
     {
-        All,
-        LastTwoTags,
+        FirstTime,
+        Incremental
     }
 
     public enum ReleaseType

@@ -83,7 +83,7 @@ namespace gitrelease.core
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return releaseFlag;
 
-            if(!releaseChoices.DryRun)
+            if (!releaseChoices.DryRun)
                 releaseFlag = CreateACommit(repo, nextVersion, configFile);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
@@ -257,7 +257,7 @@ namespace gitrelease.core
                 var changelogFileName = releaseChoices.ChangelogFileName ?? "CHANGELOG.md";
 
                 var args =
-                    $"generate --file {changelogFileName}" + (releaseChoices.ChangeLogType == ChangeLogType.LastTwoTags
+                    $"generate --file {changelogFileName}" + (releaseChoices.ChangeLogType == ChangeLogType.Incremental
                         ? $" --tag v{current}..v{nextVersion}"
                         : string.Empty);
 
@@ -507,7 +507,7 @@ namespace gitrelease.core
         private ReleaseManagerFlags InstallChangelogGenerator()
         {
             var (_, isError) =
-                CommandExecutor.ExecuteCommand("npm", "install generate-changelog -D", _rootDir);
+                CommandExecutor.ExecuteCommand("npm", "install generate-changelog@1.8.0 -D", _rootDir);
 
             if (isError)
                 return ReleaseManagerFlags.ChangelogGeneratorInstallFailed;

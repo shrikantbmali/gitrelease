@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -42,7 +43,7 @@ namespace gitrelease.core
         {
             try
             {
-                var procStartInfo = new ProcessStartInfo("cmd", "/c " + command + " " + string.Join(' ', args))
+                var procStartInfo = new ProcessStartInfo(GetCommandExecutor(), command + " " + string.Join(' ', args))
                 {
                     WorkingDirectory = workingDirectory,
                     RedirectStandardOutput = true,
@@ -68,6 +69,11 @@ namespace gitrelease.core
                 Console.WriteLine(ex);
                 return (string.Empty, true);
             }
+        }
+
+        private static string GetCommandExecutor()
+        {
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "cmd /c " : "bin/bash";
         }
 
         private static (string output, bool isError) IsError(Process process)

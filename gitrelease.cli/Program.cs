@@ -42,22 +42,22 @@ namespace gitrelease.cli
                     "Specify if changelog creation should be skipped."));
             rootCommand.AddOption(
                 new Option<uint>(
-                    new[] { "--changelog-character-limit", "-l" },
+                    new[] { "--changelog-character-limit" },
                     () => 0,
                     "Specify the limit of characters limit for changelog file (strictly implemented for azure dev-ops limit of 5000 characters)."));
             rootCommand.AddOption(
                 new Option<string>(
-                    new[] { "--changelog-filename", "-f" },
+                    new[] { "--changelog-filename" },
                     () => "CHANGELOG.md",
                     "Specify the changelog filename."));
             rootCommand.AddOption(
                 new Option<ChangeLogType>(
-                    new[] { "--changelog-type", "-h" },
-                    () => ChangeLogType.All,
+                    new[] { "--changelog-type" },
+                    () => ChangeLogType.Incremental,
                     "Specify the changelog type."));
             rootCommand.AddOption(
                 new Option<bool>(
-                    new[] { "--skip-tag", "-g" },
+                    new[] { "--skip-tag", "-t" },
                     () => false,
                     "Specify if tag creation should skipped"));
             rootCommand.AddOption(
@@ -128,40 +128,6 @@ namespace gitrelease.cli
             return rootCommand.Invoke(args);
         }
 
-        private static string ParseRoot(ArgumentResult result)
-        {
-            var pathValue = result.Tokens.FirstOrDefault()?.Value;
-            if (string.IsNullOrEmpty(pathValue))
-            {
-                return Directory.GetCurrentDirectory();
-            }
-
-            return Path.IsPathRooted(pathValue) ? pathValue : Path.Combine(Directory.GetCurrentDirectory(), pathValue);
-        }
-
-        private static int Init(string root, bool native)
-        {
-            var releaseManager = new ReleaseManager(root, CreateMessenger());
-
-            var result = releaseManager.Initialize();
-
-            if (result != ReleaseManagerFlags.Ok)
-            {
-                DumpMessage(result);
-                return (int)result;
-            }
-
-            result = releaseManager.SetupRepo(native);
-
-            DumpMessage(result);
-            return (int)result;
-        }
-
-        private static IMessenger CreateMessenger()
-        {
-            return new ConsoleMessenger();
-        }
-
         private static void ReleaseSequence(
             string root,
             ReleaseType releaseType,
@@ -209,6 +175,41 @@ namespace gitrelease.cli
             DumpMessage(releaseManagerFlags);
 
             return;// (int)releaseManagerFlags;
+        }
+
+        private static string ParseRoot(ArgumentResult result)
+        {
+            var pathValue = result.Tokens.FirstOrDefault()?.Value;
+            
+            if (string.IsNullOrEmpty(pathValue))
+            {
+                return Directory.GetCurrentDirectory();
+            }
+
+            return FindDirectory(Path.IsPathRooted(pathValue) ? pathValue : Path.Combine(Directory.GetCurrentDirectory(), pathValue));
+        }
+
+        private static int Init(string root, bool native)
+        {
+            var releaseManager = new ReleaseManager(root, CreateMessenger());
+
+            var result = releaseManager.Initialize();
+
+            if (result != ReleaseManagerFlags.Ok)
+            {
+                DumpMessage(result);
+                return (int)result;
+            }
+
+            result = releaseManager.SetupRepo(native);
+
+            DumpMessage(result);
+            return (int)result;
+        }
+
+        private static IMessenger CreateMessenger()
+        {
+            return new ConsoleMessenger();
         }
 
         private static string FindDirectory(string root)

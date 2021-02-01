@@ -98,7 +98,7 @@ namespace gitrelease.core
             if (!releaseChoices.SkipChangelog)
             {
                 _messenger.Info("Generating changelog...");
-                releaseFlag = UpdateChangelog(releaseChoices, currentVersion, nextVersion);
+                releaseFlag = UpdateChangelog(releaseChoices, configFile, currentVersion, nextVersion);
             }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
@@ -250,16 +250,13 @@ namespace gitrelease.core
             }
         }
 
-        private ReleaseManagerFlags UpdateChangelog(ReleaseChoices releaseChoices, GitVersion current, GitVersion nextVersion)
+        private ReleaseManagerFlags UpdateChangelog(ReleaseChoices releaseChoices, ConfigFile configFile, GitVersion current, GitVersion nextVersion)
         {
             try
             {
                 var changelogFileName = releaseChoices.ChangelogFileName ?? "CHANGELOG.md";
 
-                var args =
-                    $"generate --file {changelogFileName}" + (releaseChoices.ChangeLogType == ChangeLogType.Incremental
-                        ? $" --tag v{current}..v{nextVersion}"
-                        : string.Empty);
+                string args = GetChangelogArgs(releaseChoices, configFile, current, nextVersion, changelogFileName);
 
                 var (_, isError) = CommandExecutor.ExecuteCommand("changelog", args, _rootDir);
 
@@ -283,6 +280,24 @@ namespace gitrelease.core
                 _messenger.Error(ex);
                 return ReleaseManagerFlags.ChangelogCreationFailed;
             }
+        }
+
+        private static string GetChangelogArgs(
+            ReleaseChoices releaseChoices,
+            ConfigFile configFile,
+            GitVersion current,
+            GitVersion nextVersion,
+            string changelogFileName)
+        {
+            var args =
+                $"generate --file {changelogFileName}" + (releaseChoices.ChangeLogType == ChangeLogType.Incremental
+                    ? $" --tag v{current}..v{nextVersion}"
+                    : string.Empty);
+
+            args = string.IsNullOrEmpty(configFile.ChangelogOption?.ExcludeType)
+                ? args
+                : args + $" --exclude {configFile.ChangelogOption.ExcludeType}";
+            return args;
         }
 
         private ReleaseManagerFlags UpdatePlatformVersions(GitVersion version, ConfigFile configFile)
@@ -530,6 +545,10 @@ namespace gitrelease.core
                         Name = "platform name, supported are [ios, droid, uwp]. or it can be left empty in case of simple dotnet project.",
                         Path = "path to the root of the specified platforms project."
                     }
+                },
+                ChangelogOption = new ChangelogOption()
+                {
+                    ExcludeType = "chore"
                 }
             }.Save(Path.Combine(_rootDir, ConfigFileName.FixName));
 

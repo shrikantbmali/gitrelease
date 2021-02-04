@@ -258,7 +258,7 @@ namespace gitrelease.core
 
                 string args = GetChangelogArgs(releaseChoices, configFile, current, nextVersion, changelogFileName);
 
-                var (_, isError) = CommandExecutor.ExecuteCommand("changelog", args, _rootDir);
+                var (_, isError) = CommandExecutor.ExecuteCommand(GetCommandName(), args, _rootDir);
 
                 if (!isError && releaseChoices.ChangelogCharacterLimit > 0)
                 {
@@ -280,6 +280,11 @@ namespace gitrelease.core
                 _messenger.Error(ex);
                 return ReleaseManagerFlags.ChangelogCreationFailed;
             }
+        }
+
+        private string GetCommandName()
+        {
+            return Path.Combine(_rootDir, "node_modules", ".bin", "changelog");
         }
 
         private static string GetChangelogArgs(
@@ -522,7 +527,7 @@ namespace gitrelease.core
         private ReleaseManagerFlags InstallChangelogGenerator()
         {
             var (_, isError) =
-                CommandExecutor.ExecuteCommand("npm", "install generate-changelog@1.8.0 -D", _rootDir);
+                CommandExecutor.ExecuteCommand("npm", "install generate-changelog@1.8.0", _rootDir);
 
             if (isError)
                 return ReleaseManagerFlags.ChangelogGeneratorInstallFailed;
@@ -546,7 +551,7 @@ namespace gitrelease.core
                         Path = "path to the root of the specified platforms project."
                     }
                 },
-                ChangelogOption = new ChangelogOption()
+                ChangelogOption = new ChangelogOption
                 {
                     ExcludeType = "chore"
                 }
@@ -558,12 +563,12 @@ namespace gitrelease.core
         private ReleaseManagerFlags InitNbgv()
         {
             var (_, isError) =
-                CommandExecutor.ExecuteCommand("dotnet", "tool install --global nbgv --version 3.3.37", _rootDir);
+                CommandExecutor.ExecuteCommand("dotnet", "tool install --tool-path . nbgv --version 3.3.37", _rootDir);
 
             if (isError)
                 return ReleaseManagerFlags.NBGVInstallationFailed;
 
-            (_, isError) = CommandExecutor.ExecuteCommand("nbgv", "install", _rootDir);
+            (_, isError) = CommandExecutor.ExecuteCommand("./nbgv", "install", _rootDir);
 
             return isError ? ReleaseManagerFlags.NBGVInitFailed : ReleaseManagerFlags.Ok;
         }

@@ -35,7 +35,7 @@ namespace gitrelease.core
         {
             try
             {
-                var response = _shell.Term($"{command} {string.Join(' ', args)}", Output.Internal);
+                var response = _shell.Term($"{command} {string.Join(' ', args)}", Output.Internal, workingDirectory);
                 return IsError(response);
             }
             catch (Exception ex)

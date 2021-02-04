@@ -1,3 +1,14 @@
+#### 1.17.4-beta.87 (2021-02-04)
+
+##### Chores
+
+* **VersionUpdate:**  1.17.4-beta.87 ([51df281d](https://github.com/shrknt35/release/commit/51df281da47cff77dc5ce1633392ecdd1221ca9e))
+
+##### New Features
+
+* **CommandExecutor:**  add ability to execute commands in mac and linux ([7663153e](https://github.com/shrknt35/release/commit/7663153e4ecdcbed36d99dc9964f72e810afc6d4))
+* **Changelog:**  add config to exclude types in changelog generation ([d7d56771](https://github.com/shrknt35/release/commit/d7d56771092a6b7fabb1342b9cc4ed637e7ec58d))
+
 #### 1.17.1-rc.81 (2021-01-26)
 
 #### 1.17.0.80 (2021-01-25)

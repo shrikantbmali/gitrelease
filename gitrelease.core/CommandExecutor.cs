@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -30,36 +29,6 @@ namespace gitrelease.core
             }
 
             return BridgeSystem.Bat;
-        }
-
-        public static (string output, bool isError) ExecuteFile(string command, string args)
-        {
-            try
-            {
-                var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        WindowStyle = ProcessWindowStyle.Hidden,
-                        FileName = command,
-                        Arguments = args,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    }
-                };
-
-                process.Start();
-
-                process.WaitForExit();
-
-                return IsError(process);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                return (string.Empty, true);
-            }
         }
 
         public static (string output, bool isError) ExecuteCommand(string command, string args, string workingDirectory)

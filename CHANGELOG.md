@@ -1,3 +1,15 @@
+#### 1.17.4-beta.92 (2021-02-04)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.17.4-beta.92 ([86560ebf](https://github.com/shrknt35/release/commit/86560ebfc10eed998d86f408424e1025e60e8159))
+  *  1.17.4-beta.90 ([1a26db5f](https://github.com/shrknt35/release/commit/1a26db5f808a13b7a4470f2d0f95ad2ab2f45b4b))
+
+##### Bug Fixes
+
+* **DroidPlatform:**  manifest file path generation correction to make it platform independent ([8d15148e](https://github.com/shrknt35/release/commit/8d15148e2defe160456ca0200a21effa6d8cca8c))
+
 #### 1.17.4-beta.90 (2021-02-04)
 
 ##### Chores

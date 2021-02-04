@@ -1,3 +1,15 @@
+#### 1.17.4-beta.90 (2021-02-04)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.17.4-beta.90 ([e0f42890](https://github.com/shrknt35/release/commit/e0f42890ef597c801f328a7d2c6b47dd67754a65))
+  *  1.17.4-beta.88 ([992773d0](https://github.com/shrknt35/release/commit/992773d0f499a0d92801c75f39298c0e6dc33fcb))
+
+##### New Features
+
+* **Changelog:**  execute command from node_modeuls folder ([0751b18d](https://github.com/shrknt35/release/commit/0751b18d0474353f8427ff4a7f12b97d6dd35512))
+
 #### 1.17.4-beta.88 (2021-02-04)
 
 ##### Chores

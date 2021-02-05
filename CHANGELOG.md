@@ -1,3 +1,15 @@
+#### 1.17.4-beta.94 (2021-02-05)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.17.4-beta.94 ([e02a991a](https://github.com/shrknt35/release/commit/e02a991a38ef63c6de93ed38f30488e55577460f))
+  *  1.17.4-beta.92 ([8362f4e0](https://github.com/shrknt35/release/commit/8362f4e0a25a47738eb9178a9877efb5d7a7e53d))
+
+##### Bug Fixes
+
+* **Changelog:**  prev version should be package version ([11154e19](https://github.com/shrknt35/release/commit/11154e1932b1cb8fc2ab86019f30bcc527d077e7))
+
 #### 1.17.4-beta.92 (2021-02-04)
 
 ##### Chores

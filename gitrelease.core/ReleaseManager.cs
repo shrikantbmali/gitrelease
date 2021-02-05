@@ -67,7 +67,7 @@ namespace gitrelease.core
         {
             _messenger.Info("Starting release sequence.");
 
-            var currentVersion = GetCurrentVersion(releaseChoices);
+            var packageVersion = _package.GetVersion();
 
             var nextVersion = DetermineNextVersion(repo, releaseChoices);
 
@@ -98,7 +98,7 @@ namespace gitrelease.core
             if (!releaseChoices.SkipChangelog)
             {
                 _messenger.Info("Generating changelog...");
-                releaseFlag = UpdateChangelog(releaseChoices, configFile, currentVersion, nextVersion);
+                releaseFlag = UpdateChangelog(releaseChoices, configFile, packageVersion, nextVersion);
             }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)

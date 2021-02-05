@@ -1,3 +1,58 @@
+#### 1.17.4-beta.94 (2021-02-05)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.17.4-beta.94 ([e02a991a](https://github.com/shrknt35/release/commit/e02a991a38ef63c6de93ed38f30488e55577460f))
+  *  1.17.4-beta.92 ([8362f4e0](https://github.com/shrknt35/release/commit/8362f4e0a25a47738eb9178a9877efb5d7a7e53d))
+
+##### Bug Fixes
+
+* **Changelog:**  prev version should be package version ([11154e19](https://github.com/shrknt35/release/commit/11154e1932b1cb8fc2ab86019f30bcc527d077e7))
+
+#### 1.17.4-beta.92 (2021-02-04)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.17.4-beta.92 ([86560ebf](https://github.com/shrknt35/release/commit/86560ebfc10eed998d86f408424e1025e60e8159))
+  *  1.17.4-beta.90 ([1a26db5f](https://github.com/shrknt35/release/commit/1a26db5f808a13b7a4470f2d0f95ad2ab2f45b4b))
+
+##### Bug Fixes
+
+* **DroidPlatform:**  manifest file path generation correction to make it platform independent ([8d15148e](https://github.com/shrknt35/release/commit/8d15148e2defe160456ca0200a21effa6d8cca8c))
+
+#### 1.17.4-beta.90 (2021-02-04)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.17.4-beta.90 ([e0f42890](https://github.com/shrknt35/release/commit/e0f42890ef597c801f328a7d2c6b47dd67754a65))
+  *  1.17.4-beta.88 ([992773d0](https://github.com/shrknt35/release/commit/992773d0f499a0d92801c75f39298c0e6dc33fcb))
+
+##### New Features
+
+* **Changelog:**  execute command from node_modeuls folder ([0751b18d](https://github.com/shrknt35/release/commit/0751b18d0474353f8427ff4a7f12b97d6dd35512))
+
+#### 1.17.4-beta.88 (2021-02-04)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.17.4-beta.88 ([1c2877e2](https://github.com/shrknt35/release/commit/1c2877e21245ef0d3d5cebc3b0a21092e2e4970f))
+  *  1.17.4-beta.87 ([4de5617e](https://github.com/shrknt35/release/commit/4de5617e1c0810a207d6cab01118eb4ff898dfee))
+
+#### 1.17.4-beta.87 (2021-02-04)
+
+##### Chores
+
+* **VersionUpdate:**  1.17.4-beta.87 ([51df281d](https://github.com/shrknt35/release/commit/51df281da47cff77dc5ce1633392ecdd1221ca9e))
+
+##### New Features
+
+* **CommandExecutor:**  add ability to execute commands in mac and linux ([7663153e](https://github.com/shrknt35/release/commit/7663153e4ecdcbed36d99dc9964f72e810afc6d4))
+* **Changelog:**  add config to exclude types in changelog generation ([d7d56771](https://github.com/shrknt35/release/commit/d7d56771092a6b7fabb1342b9cc4ed637e7ec58d))
+
 #### 1.17.1-rc.81 (2021-01-26)
 
 #### 1.17.0.80 (2021-01-25)

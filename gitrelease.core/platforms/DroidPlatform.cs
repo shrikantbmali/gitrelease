@@ -79,7 +79,7 @@ namespace gitrelease.core.platforms
 
         private static string GetManifestFilePath(string path)
         {
-            return Directory.GetFiles(path, @"Properties\AndroidManifest.xml").FirstOrDefault();
+            return Directory.GetFiles(Path.Combine(path, "Properties"), "AndroidManifest.xml").FirstOrDefault();
         }
     }
 }

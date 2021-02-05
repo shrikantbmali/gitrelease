@@ -1,67 +1,42 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using ToolBox.Bridge;
+using ToolBox.Notification;
+using ToolBox.Platform;
 
 namespace gitrelease.core
 {
     public static class CommandExecutor
     {
-        public static (string output, bool isError) ExecuteFile(string command, string args)
+        private static ShellConfigurator _shell;
+
+        static CommandExecutor()
         {
-            try
+            _shell = new ShellConfigurator(GetBridge(), NotificationSystem.Default);
+        }
+
+        private static IBridgeSystem GetBridge()
+        {
+            switch (OS.GetCurrent())
             {
-                var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        WindowStyle = ProcessWindowStyle.Hidden,
-                        FileName = command,
-                        Arguments = args,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true
-                    }
-                };
-
-                process.Start();
-
-                process.WaitForExit();
-
-                return IsError(process);
+                case "win":
+                    return BridgeSystem.Bat;
+                case "mac":
+                case "gnu":
+                    return  BridgeSystem.Bash;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                return (string.Empty, true);
-            }
+
+            return BridgeSystem.Bat;
         }
 
         public static (string output, bool isError) ExecuteCommand(string command, string args, string workingDirectory)
         {
             try
             {
-                var procStartInfo = new ProcessStartInfo("cmd", "/c " + command + " " + string.Join(' ', args))
-                {
-                    WorkingDirectory = workingDirectory,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                };
-
-                var process = new Process {StartInfo = procStartInfo};
-                process.Start();
-
-                process.WaitForExit();
-
-                var output = process?.StandardOutput.ReadToEnd();
-                var err = process?.StandardError.ReadToEnd();
-
-                Console.WriteLine($"Out : {output} \n Err {err}");
-
-                return IsError(process);
+                var response = _shell.Term($"{command} {string.Join(' ', args)}", Output.Internal, workingDirectory);
+                return IsError(response);
             }
             catch (Exception ex)
             {
@@ -69,14 +44,11 @@ namespace gitrelease.core
                 return (string.Empty, true);
             }
         }
-
-        private static (string output, bool isError) IsError(Process process)
+        
+        private static (string output, bool isError) IsError(Response process)
         {
-            var output = process.StandardOutput.ReadToEnd();
-            var err = process.StandardError.ReadToEnd();
-
-            var isError = process.ExitCode != 0;
-            return (isError ? output : err, isError);
+            var isError = process.code != 0;
+            return (isError ? process.stdout : process.stderr, isError);
         }
     }
 

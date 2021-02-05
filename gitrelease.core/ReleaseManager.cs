@@ -67,7 +67,7 @@ namespace gitrelease.core
         {
             _messenger.Info("Starting release sequence.");
 
-            var currentVersion = GetCurrentVersion(releaseChoices);
+            var packageVersion = _package.GetVersion();
 
             var nextVersion = DetermineNextVersion(repo, releaseChoices);
 
@@ -98,7 +98,7 @@ namespace gitrelease.core
             if (!releaseChoices.SkipChangelog)
             {
                 _messenger.Info("Generating changelog...");
-                releaseFlag = UpdateChangelog(releaseChoices, currentVersion, nextVersion);
+                releaseFlag = UpdateChangelog(releaseChoices, configFile, packageVersion, nextVersion);
             }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
@@ -250,18 +250,15 @@ namespace gitrelease.core
             }
         }
 
-        private ReleaseManagerFlags UpdateChangelog(ReleaseChoices releaseChoices, GitVersion current, GitVersion nextVersion)
+        private ReleaseManagerFlags UpdateChangelog(ReleaseChoices releaseChoices, ConfigFile configFile, GitVersion current, GitVersion nextVersion)
         {
             try
             {
                 var changelogFileName = releaseChoices.ChangelogFileName ?? "CHANGELOG.md";
 
-                var args =
-                    $"generate --file {changelogFileName}" + (releaseChoices.ChangeLogType == ChangeLogType.Incremental
-                        ? $" --tag v{current}..v{nextVersion}"
-                        : string.Empty);
+                string args = GetChangelogArgs(releaseChoices, configFile, current, nextVersion, changelogFileName);
 
-                var (_, isError) = CommandExecutor.ExecuteCommand("changelog", args, _rootDir);
+                var (_, isError) = CommandExecutor.ExecuteCommand(GetCommandName(), args, _rootDir);
 
                 if (!isError && releaseChoices.ChangelogCharacterLimit > 0)
                 {
@@ -283,6 +280,29 @@ namespace gitrelease.core
                 _messenger.Error(ex);
                 return ReleaseManagerFlags.ChangelogCreationFailed;
             }
+        }
+
+        private string GetCommandName()
+        {
+            return Path.Combine(_rootDir, "node_modules", ".bin", "changelog");
+        }
+
+        private static string GetChangelogArgs(
+            ReleaseChoices releaseChoices,
+            ConfigFile configFile,
+            GitVersion current,
+            GitVersion nextVersion,
+            string changelogFileName)
+        {
+            var args =
+                $"generate --file {changelogFileName}" + (releaseChoices.ChangeLogType == ChangeLogType.Incremental
+                    ? $" --tag v{current}..v{nextVersion}"
+                    : string.Empty);
+
+            args = string.IsNullOrEmpty(configFile.ChangelogOption?.ExcludeType)
+                ? args
+                : args + $" --exclude {configFile.ChangelogOption.ExcludeType}";
+            return args;
         }
 
         private ReleaseManagerFlags UpdatePlatformVersions(GitVersion version, ConfigFile configFile)
@@ -507,7 +527,7 @@ namespace gitrelease.core
         private ReleaseManagerFlags InstallChangelogGenerator()
         {
             var (_, isError) =
-                CommandExecutor.ExecuteCommand("npm", "install generate-changelog@1.8.0 -D", _rootDir);
+                CommandExecutor.ExecuteCommand("npm", "install generate-changelog@1.8.0", _rootDir);
 
             if (isError)
                 return ReleaseManagerFlags.ChangelogGeneratorInstallFailed;
@@ -530,6 +550,10 @@ namespace gitrelease.core
                         Name = "platform name, supported are [ios, droid, uwp]. or it can be left empty in case of simple dotnet project.",
                         Path = "path to the root of the specified platforms project."
                     }
+                },
+                ChangelogOption = new ChangelogOption
+                {
+                    ExcludeType = "chore"
                 }
             }.Save(Path.Combine(_rootDir, ConfigFileName.FixName));
 
@@ -539,12 +563,12 @@ namespace gitrelease.core
         private ReleaseManagerFlags InitNbgv()
         {
             var (_, isError) =
-                CommandExecutor.ExecuteCommand("dotnet", "tool install --global nbgv --version 3.3.37", _rootDir);
+                CommandExecutor.ExecuteCommand("dotnet", "tool install --tool-path . nbgv --version 3.3.37", _rootDir);
 
             if (isError)
                 return ReleaseManagerFlags.NBGVInstallationFailed;
 
-            (_, isError) = CommandExecutor.ExecuteCommand("nbgv", "install", _rootDir);
+            (_, isError) = CommandExecutor.ExecuteCommand("./nbgv", "install", _rootDir);
 
             return isError ? ReleaseManagerFlags.NBGVInitFailed : ReleaseManagerFlags.Ok;
         }

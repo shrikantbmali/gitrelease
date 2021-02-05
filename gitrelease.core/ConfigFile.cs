@@ -17,6 +17,9 @@ namespace gitrelease.core
 
         [JsonProperty("platforms")]
         public IEnumerable<Platform> Platforms { get; set; }
+
+        [JsonProperty("changelog-options")]
+        public ChangelogOption ChangelogOption { get; set; }
     }
 
     internal struct Platform
@@ -26,6 +29,12 @@ namespace gitrelease.core
 
         [JsonProperty("path")]
         public string Path { get; set; }
+    }
+
+    internal class ChangelogOption
+    {
+        [JsonProperty("exclude-type")]
+        public string ExcludeType { get; set; }
     }
 
     internal static class Config

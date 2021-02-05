@@ -40,16 +40,16 @@ namespace gitrelease.core
 
         public string ToVersionString()
         {
-            var versionString = $"{Major}.{Minor}.{Patch}";
+            var versionString = $"{Major}{Separator}{Minor}{Separator}{Patch}";
 
             if (IsPreRelease())
             {
-                versionString += $"-{PreReleaseTag}";
+                versionString += $"{PreReleaseSeparator}{PreReleaseTag}";
             }
 
             if (!string.IsNullOrEmpty(BuildNumber))
             {
-                versionString += $".{BuildNumber}";
+                versionString += $"{Separator}{BuildNumber}";
             }
 
             return versionString;

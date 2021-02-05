@@ -1,3 +1,11 @@
+#### 1.18.0.96 (2021-02-05)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.18.0.96 ([9917b91f](https://github.com/shrknt35/release/commit/9917b91f30081af487de4d567d53a3f9f2c7f58e))
+  *  1.17.4-beta.94 ([873a0bfa](https://github.com/shrknt35/release/commit/873a0bfa7e297dbe5d03f1c2b4ec950224e5c89a))
+
 #### 1.17.4-beta.94 (2021-02-05)
 
 ##### Chores

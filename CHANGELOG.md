@@ -1,3 +1,12 @@
+#### 1.18.0.100 (2021-02-06)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.18.0.100 ([5494cdfa](https://github.com/shrknt35/release/commit/5494cdfad4038a809f4ada3250f422c864a55177))
+  *  1.18.0.96 ([fa507a5e](https://github.com/shrknt35/release/commit/fa507a5ea01eb251e38e6b19bd50705f41b2ae37))
+* **Package:**  update nuget package description ([18f38f94](https://github.com/shrknt35/release/commit/18f38f9489bf6744683c2c996c781a3cb7bd5b36))
+
 #### 1.18.0.96 (2021-02-05)
 
 ##### Chores

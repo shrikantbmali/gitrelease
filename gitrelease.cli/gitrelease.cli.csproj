@@ -4,12 +4,21 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
 
+ 		<!-- Properties related to NuGet packaging: -->
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>gitrelease</ToolCommandName>
     <PackageOutputPath>./../nupkg</PackageOutputPath>
-
     <PackageId>git-release</PackageId>
     <Authors>Shrikant Mali</Authors>
+		<IsPackable>True</IsPackable>
+		<Title>Gitrelease: the release management for Xamarin Applications.</Title>
+		<PackageReleaseNotes>A changelog is available at https://github.com/shrknt35/gitrelease/blob/main/CHANGELOG.md.</PackageReleaseNotes>
+		<PackageLicenseUrl>https://raw.githubusercontent.com/gitrelease/blob/main/LICENSE</PackageLicenseUrl>
+		<PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
+		<PackageTags>gitrelease;xamarin;release;xamarin-ios;xamarin-droid;uwp</PackageTags>
+		<PackageProjectUrl>https://github.com/shrknt35/gitrelease</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/shrknt35/gitrelease</RepositoryUrl>
+
     <Description />
 
   </PropertyGroup>

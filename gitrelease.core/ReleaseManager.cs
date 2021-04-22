@@ -302,6 +302,11 @@ namespace gitrelease.core
             args = string.IsNullOrEmpty(configFile.ChangelogOption?.ExcludeType)
                 ? args
                 : args + $" --exclude {configFile.ChangelogOption.ExcludeType}";
+
+            args = string.IsNullOrEmpty(configFile.ChangelogOption?.ProjectUrl)
+                ? args
+                : args + $" --repo-url {configFile.ChangelogOption.ProjectUrl}";
+
             return args;
         }
 

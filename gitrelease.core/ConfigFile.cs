@@ -35,6 +35,9 @@ namespace gitrelease.core
     {
         [JsonProperty("exclude-type")]
         public string ExcludeType { get; set; }
+
+        [JsonProperty("project-url")]
+        public string ProjectUrl { get; set; }
     }
 
     internal static class Config

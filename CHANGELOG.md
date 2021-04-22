@@ -1,3 +1,11 @@
+#### 1.18.2.104 (2021-04-22)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.18.2.104 ([3d6d9213](https://github.com/shrknt35/release/commit/3d6d9213ac0d07431e26258fc2671ff7706a9ebe))
+  *  1.18.2.103 ([4d3e16af](https://github.com/shrknt35/release/commit/4d3e16af54f62b45b557ac577517631e1e750081))
+
 #### 1.18.1-a.101 (2021-02-06)
 
 ##### Chores

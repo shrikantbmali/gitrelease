@@ -27,9 +27,9 @@
     <PackageReference Include="Colorful.Console" Version="1.2.15" />
     <PackageReference Include="dein.ToolBox" Version="1.7.1" />
     <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="plist-cil" Version="2.1.0" />
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20574.7" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21216.1" />
 
     <None Update="cmd.sh" CopyToOutputDirectory="PreserveNewest" />
     <None Update="cmd.bat" CopyToOutputDirectory="PreserveNewest" />
@@ -37,6 +37,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\gitrelease.core\gitrelease.core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.4.194" />
   </ItemGroup>
 
 </Project>

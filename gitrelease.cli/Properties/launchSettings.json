@@ -2,7 +2,7 @@
   "profiles": {
     "gitrelease.cli": {
       "commandName": "Project",
-      "commandLineArgs": "patch -r C:\\Users\\ShrikantMali\\sandbox\\ac\\az-func-cicd-trigger --changelog-type FirstTime"
+      "commandLineArgs": "buildnumber -r C:\\Users\\ShrikantMali\\sandbox\\ac\\main --changelog-character-limit 4999 -i -d --append-value \"## Debug\""
     },
     "WSL 2": {
       "commandName": "WSL2",

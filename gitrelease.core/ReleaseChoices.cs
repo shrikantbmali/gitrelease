@@ -19,6 +19,8 @@
         public ChangeLogType ChangeLogType { get; set; }
         
         public string ChangelogFileName { get; set; }
+        
+        public string AppendValue { get; set; }
     }
 
     public enum ChangeLogType

@@ -1,9 +1,7 @@
-name: .NET
+name: .NET Manual
 
 on:  
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 jobs:
   build:
 

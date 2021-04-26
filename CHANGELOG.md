@@ -1,3 +1,15 @@
+#### 1.18.4.110 (2021-04-26)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.18.4.110 ([b5c8b581](https://github.com/shrknt35/release/commit/b5c8b581391c94660e8901f12ef40bdc9b1f4c5f))
+  *  1.18.3.108 ([21604f5a](https://github.com/shrknt35/release/commit/21604f5a877ce603d2e2a50fa67be6dd9724f3bb))
+
+##### Bug Fixes
+
+* **CHANGELOG:**  fix the append mechanism ([d16fd40e](https://github.com/shrknt35/release/commit/d16fd40efbb27848316f553a88858f96172ec3fc))
+
 #### 1.18.3.108 (2021-04-26)
 
 ##### Chores

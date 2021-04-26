@@ -32,7 +32,8 @@ jobs:
     - name: Pack--
       run: |
         npm --version
-        gitrelease buildnumber -d -i
+        npm install
+        gitrelease buildnumber -d -i -r . -c
         dotnet pack -c RELEASE /p:PublicRelease=true
     - name: Check version
       run: ./nbgv get-version

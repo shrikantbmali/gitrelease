@@ -1,3 +1,16 @@
+#### 1.18.2.106 (2021-04-26)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.18.2.106 ([c2482045](https://github.com/shrknt35/release/commit/c2482045bdd0ae517a85420433819236cf68b0f3))
+  *  1.18.2.104 ([d36e1df6](https://github.com/shrknt35/release/commit/d36e1df678585b9908276140d7f81907af95a844))
+  *  1.18.2.103 ([4d3e16af](https://github.com/shrknt35/release/commit/4d3e16af54f62b45b557ac577517631e1e750081))
+
+##### New Features
+
+* **CHANGELOG:**  add ability to append changelog file with a specified string ([4e37654e](https://github.com/shrknt35/release/commit/4e37654e04322e31ad74a458965028d8da52cf76))
+
 #### 1.18.2.104 (2021-04-22)
 
 ##### Chores

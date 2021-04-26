@@ -1,3 +1,12 @@
+#### 1.18.3.108 (2021-04-26)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.18.3.108 ([4d9c5324](https://github.com/shrknt35/release/commit/4d9c5324fbdda45a57676059f8e1dc5e91e3998c))
+  *  1.18.2.106 ([f3c1e700](https://github.com/shrknt35/release/commit/f3c1e700e948a6fe1d17d739f03e7ee7f9db1814))
+* **ManualTrigger:**  add manual trigger workflow ([61f683f2](https://github.com/shrknt35/release/commit/61f683f2c395959a2a10833888ce199fa8784704))
+
 #### 1.18.2.106 (2021-04-26)
 
 ##### Chores

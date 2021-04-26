@@ -273,17 +273,19 @@ namespace gitrelease.core
                         appendString = Environment.NewLine + releaseChoices.AppendValue;
                     }
 
+                    var readAllText = File.ReadAllText(changelogFilePath);
+
                     if (releaseChoices.ChangelogCharacterLimit > 0)
                     {
-                        var readAllText = File.ReadAllText(changelogFilePath);
                         if (readAllText.Length > changelogFileActualLimit)
                         {
-                            var limitedLength = readAllText.Substring(0, changelogFileActualLimit);
-                            limitedLength += appendString;
-
-                            File.WriteAllText(changelogFilePath, limitedLength);
+                            readAllText = readAllText.Substring(0, changelogFileActualLimit);
                         }
                     }
+
+                    readAllText += appendString;
+
+                    File.WriteAllText(changelogFilePath, readAllText);
                 }
 
                 return isError ? ReleaseManagerFlags.ChangelogCreationFailed : ReleaseManagerFlags.Ok;

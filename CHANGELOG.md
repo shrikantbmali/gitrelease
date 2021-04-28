@@ -1,3 +1,15 @@
+#### 1.18.5.112 (2021-04-28)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.18.5.112 ([ce7fbb4b](https://github.com/shrknt35/release/commit/ce7fbb4bb016b9911e851155c4d48f994c18daa2))
+  *  1.18.4.110 ([c9513c4e](https://github.com/shrknt35/release/commit/c9513c4e6ee7ae48c0b05850c1f49f270156472b))
+
+##### New Features
+
+* **GetVersion:**  add ability to get only package version ([4c03bce2](https://github.com/shrknt35/release/commit/4c03bce27a60b6b58ea43a1e5b09f818bb981984))
+
 #### 1.18.4.110 (2021-04-26)
 
 ##### Chores

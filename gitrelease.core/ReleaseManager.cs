@@ -493,11 +493,16 @@ namespace gitrelease.core
 
         public IEnumerable<string> GetVersion(string platformName)
         {
-            var list = new List<string> {GetCurrentVersion(new ReleaseChoices()).ToString()};
+            var list = new List<string> {GetCurrentVersion(new ReleaseChoices()).ToString()}.AsEnumerable();
 
-            return list.Union(platformName == "all"
-                ? CreatePlatforms(_package.GetConfig().Platforms).Select(p => p.Value.GetVersion()).ToArray()
-                : new[] { CreatePlatforms(_package.GetConfig().Platforms)[platformName].GetVersion() });
+            if (!platformName.Equals("package"))
+            {
+                list = list.Union(platformName == "all"
+                    ? CreatePlatforms(_package.GetConfig().Platforms).Select(p => p.Value.GetVersion()).ToArray()
+                    : new[] { CreatePlatforms(_package.GetConfig().Platforms)[platformName].GetVersion() });
+            }
+
+            return list;
         }
 
         public ReleaseManagerFlags SetupRepo(bool generic)

@@ -31,7 +31,7 @@ namespace gitrelease.cli
             var getVersionCommand = new Command("get-version", "Gets the current versions used by repositories.") {Handler = CommandHandler.Create<string, string>(GetVersion)};
 
             getVersionCommand.AddAlias("gv");
-            getVersionCommand.AddOption(new Option<string>(new[] { "--platform", "-t" }, () => "all", "Gets version for specific platform."));
+            getVersionCommand.AddOption(new Option<string>(new[] { "--platform", "-t" }, () => "package", "Gets version for specific platform."));
             getVersionCommand.AddOption(new Option<string>(new[] { "--root", "-r" }, ParseRoot, true, "Specify the root folder if the current executing directory is not a intended folder"));
 
             rootCommand.AddCommand(getVersionCommand);

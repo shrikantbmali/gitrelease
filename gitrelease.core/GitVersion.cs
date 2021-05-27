@@ -55,6 +55,11 @@ namespace gitrelease.core
             return versionString;
         }
 
+        public string ToVersionStringV()
+        {
+            return $"v{ToVersionString()}";
+        }
+
         public override string ToString()
         {
             return ToVersionString();

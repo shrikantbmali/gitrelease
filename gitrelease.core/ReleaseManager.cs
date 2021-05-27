@@ -47,15 +47,15 @@ namespace gitrelease.core
                     var validityFlag = IsRepoReadyForRelease(repo, releaseChoices);
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
-                        return validityFlag;
+                        return (RollbackInfo.Empty, validityFlag);
 
                     var config = _package.GetConfig();
 
                     var result = config == null
-                        ? ReleaseManagerFlags.InvalidConfigFile
+                        ? (RollbackInfo: RollbackInfo.Empty, Result: ReleaseManagerFlags.InvalidConfigFile)
                         : Release(repo, config, releaseChoices);
 
-                    if(result == ReleaseManagerFlags.Ok && !releaseChoices.CustomVersion.IsPreRelease() && !releaseChoices.DryRun)
+                    if(result.Result == ReleaseManagerFlags.Ok && !releaseChoices.CustomVersion.IsPreRelease() && !releaseChoices.DryRun)
                         _messenger.Info("To push changes to origin, use command: git push && git push --tags");
 
                     return result;
@@ -63,8 +63,10 @@ namespace gitrelease.core
             });
         }
 
-        private ReleaseManagerFlags Release(IRepository repo, ConfigFile configFile, ReleaseChoices releaseChoices)
+        private (RollbackInfo RollbackInfo, ReleaseManagerFlags Result) Release(IRepository repo, ConfigFile configFile, ReleaseChoices releaseChoices)
         {
+            var rollbackInfo = new RollbackInfo();
+
             _messenger.Info("Starting release sequence.");
 
             var packageVersion = _package.GetVersion();
@@ -75,24 +77,29 @@ namespace gitrelease.core
             var releaseFlag = UpdatePackageVersion(nextVersion, configFile.IsGenericProject);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
-                return releaseFlag;
+                return (rollbackInfo, releaseFlag);
 
             _messenger.Info("Updating platform version...");
             releaseFlag = UpdatePlatformVersions(nextVersion, configFile);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
-                return releaseFlag;
+                return (rollbackInfo, releaseFlag);
 
             if (!releaseChoices.DryRun)
                 releaseFlag = CreateACommit(repo, nextVersion, configFile);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
-                return releaseFlag;
+                return (rollbackInfo, releaseFlag);
 
             if (!releaseChoices.DryRun && !releaseChoices.SkipTag)
             {
-                _messenger.Info($"Creating tag name v{nextVersion.ToVersionString()}");
+                _messenger.Info($"Creating tag name {nextVersion.ToVersionStringV()}");
                 releaseFlag = CreateTag(repo, nextVersion);
+
+                if (releaseFlag == ReleaseManagerFlags.Ok)
+                {
+                    rollbackInfo.CreatedTag = nextVersion.ToVersionStringV();
+                }
             }
 
             if (!releaseChoices.SkipChangelog)
@@ -102,7 +109,7 @@ namespace gitrelease.core
             }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
-                return releaseFlag;
+                return (rollbackInfo, releaseFlag);
 
             if (!releaseChoices.DryRun)
             {
@@ -111,9 +118,9 @@ namespace gitrelease.core
             }
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
-                return releaseFlag;
+                return (rollbackInfo, releaseFlag);
 
-            return releaseFlag;
+            return (rollbackInfo, releaseFlag);
         }
 
         private GitVersion DetermineNextVersion(IRepository repo, ReleaseChoices releaseChoices)
@@ -240,7 +247,7 @@ namespace gitrelease.core
         {
             try
             {
-                repo.ApplyTag($"v{version.ToVersionString()}");
+                repo.ApplyTag(version.ToVersionStringV());
                 return ReleaseManagerFlags.Ok;
             }
             catch (Exception e)
@@ -444,16 +451,19 @@ namespace gitrelease.core
         }
 
         private ReleaseManagerFlags ExecuteRepoSafe(bool isIgnoreDirty,
-            Func<IRepository, ReleaseManagerFlags> func)
+            Func<IRepository, (RollbackInfo RollbackInfo, ReleaseManagerFlags Result)> func)
         {
             using var repo = new Repository(_rootDir);
             var repoHead = repo.Head;
 
             var result = ReleaseManagerFlags.Unknown;
 
+            (RollbackInfo RollbackInfo, ReleaseManagerFlags Result) rollbackInfoResult = default;
+
             try
             {
-                result = func(repo);
+                rollbackInfoResult = func(repo);
+                result = rollbackInfoResult.Result;
 
                 return result;
             }
@@ -471,6 +481,11 @@ namespace gitrelease.core
                 {
                     repo.Reset(ResetMode.Hard, repoHead.Tip);
                     repo.RemoveUntrackedFiles();
+
+                    if (!string.IsNullOrEmpty(rollbackInfoResult.RollbackInfo?.CreatedTag))
+                    {
+                        repo.Tags.Remove(rollbackInfoResult.RollbackInfo?.CreatedTag);
+                    }
                 }
             }
 
@@ -515,18 +530,18 @@ namespace gitrelease.core
                     var validityFlag = IsRepoReadyForSetup(repo);
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
-                        return validityFlag;
+                        return (RollbackInfo.Empty, validityFlag);
 
                     _messenger.Info("Initializing Changelog.");
                     validityFlag = InitNpm();
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
-                        return validityFlag;
+                        return (RollbackInfo.Empty, validityFlag);
 
                     validityFlag = InstallChangelogGenerator();
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
-                        return validityFlag;
+                        return (RollbackInfo.Empty, validityFlag);
 
                     if (!generic)
                     {
@@ -535,16 +550,16 @@ namespace gitrelease.core
                     }
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
-                        return validityFlag;
+                        return (RollbackInfo.Empty, validityFlag);
 
                     validityFlag = InitDefaultConfig(generic);
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
-                        return validityFlag;
+                        return (RollbackInfo.Empty, validityFlag);
 
                     validityFlag = Stage(repo);
 
-                    return validityFlag;
+                    return (RollbackInfo.Empty, validityFlag);
                 });
             });
         }
@@ -618,6 +633,12 @@ namespace gitrelease.core
                 }
             }
         }
+    }
+
+    internal class RollbackInfo
+    {
+        public static RollbackInfo Empty = new RollbackInfo();
+        public string CreatedTag { get; set; }
     }
 
     public interface IMessenger

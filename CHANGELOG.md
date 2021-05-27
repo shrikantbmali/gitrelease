@@ -1,3 +1,15 @@
+#### 1.18.6.114 (2021-05-27)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.18.6.114 ([354524ab](https://github.com/shrknt35/release/commit/354524abc3d1937149c8b775dc66260e3b9902d8))
+  *  1.18.5.112 ([542b73ca](https://github.com/shrknt35/release/commit/542b73ca919bea4016fd15871ec0863c88d2d64e))
+
+##### New Features
+
+* **Rollback:**  when failed the rollback will deleted created tag as well ([1a48bfe9](https://github.com/shrknt35/release/commit/1a48bfe9128f1925c98a4f30539c163f4a904d98))
+
 #### 1.18.5.112 (2021-04-28)
 
 ##### Chores

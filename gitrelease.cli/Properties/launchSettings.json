@@ -2,7 +2,7 @@
   "profiles": {
     "gitrelease.cli": {
       "commandName": "Project",
-      "commandLineArgs": "buildnumber -r C:\\Users\\ShrikantMali\\sandbox\\ac\\main"
+      "commandLineArgs": "buildnumber -r C:\\Users\\ShrikantMali\\sandbox\\ac\\main -i -d"
     },
     "WSL 2": {
       "commandName": "WSL2",

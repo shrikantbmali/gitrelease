@@ -127,7 +127,7 @@ namespace gitrelease.core
         {
             var version = GetCurrentVersion(releaseChoices);
 
-            var versionVNext = Increment(repo, version, releaseChoices.ReleaseType);
+            var versionVNext = Increment(repo, version, releaseChoices);
 
             if (releaseChoices.CustomVersion?.IsPreRelease() ?? false)
             {
@@ -139,13 +139,12 @@ namespace gitrelease.core
             return versionVNext;
         }
 
-        private static GitVersion Increment(IRepository repo, GitVersion gitVersion, ReleaseType releaseType)
+        private static GitVersion Increment(IRepository repo, GitVersion gitVersion, ReleaseChoices releaseChoices)
         {
-            return GetUpdateVersion(gitVersion, releaseType, repo).SetBuildNumberAndGetNew(GetBuildNumber(repo));
+            return GetUpdateVersion(gitVersion, releaseChoices.ReleaseType).SetBuildNumberAndGetNew(GetBuildNumber(repo, releaseChoices));
         }
 
-        private static GitVersion GetUpdateVersion(GitVersion gitVersion, ReleaseType releaseType,
-            IRepository repo)
+        private static GitVersion GetUpdateVersion(GitVersion gitVersion, ReleaseType releaseType)
         {
             return releaseType switch
             {
@@ -153,14 +152,19 @@ namespace gitrelease.core
                 ReleaseType.Minor => gitVersion.IncrementMinor().ResetPatch(),
                 ReleaseType.Patch => gitVersion.IncrementPatch(),
                 ReleaseType.Custom => gitVersion,
-                ReleaseType.BuildNumber => gitVersion.SetBuildNumberAndGetNew(GetBuildNumber(repo)),
+                ReleaseType.BuildNumber => gitVersion,
                 _ => throw new ArgumentOutOfRangeException(nameof(releaseType), releaseType, null)
             };
         }
 
-        private static int GetBuildNumber(IRepository repo)
+        private static string GetBuildNumber(IRepository repo, ReleaseChoices releaseChoices)
         {
-            return repo.Commits.Count();
+            if (releaseChoices.ReleaseType == ReleaseType.Custom)
+            {
+                return releaseChoices.CustomVersion.BuildNumber;
+            }
+
+            return repo.Commits.Count().ToString();
         }
 
         private ReleaseManagerFlags CreateACommit(IRepository repo, GitVersion version, ConfigFile configFile)

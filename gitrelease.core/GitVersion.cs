@@ -176,11 +176,11 @@ namespace gitrelease.core
             };
         }
 
-        public GitVersion SetBuildNumberAndGetNew(int buildNumber)
+        public GitVersion SetBuildNumberAndGetNew(string buildNumber)
         {
             return new GitVersion(this)
             {
-                BuildNumber = buildNumber.ToString(CultureInfo.InvariantCulture)
+                BuildNumber = buildNumber
             };
         }
     }

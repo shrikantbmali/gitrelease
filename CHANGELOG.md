@@ -1,3 +1,16 @@
+#### 1.18.7.117 (2021-05-31)
+
+##### Chores
+
+* **VersionUpdate:**
+  *  1.18.7.117 ([6c392db7](https://github.com/shrknt35/release/commit/6c392db787f8fbbe383ddd1f24b8bf349cb9a392))
+  *  1.18.6.114 ([200c4993](https://github.com/shrknt35/release/commit/200c499325a04aee9dd41463c7959c134b54dd1c))
+* **Actions:**  make changelog creation optional in github actions ([d856bf24](https://github.com/shrknt35/release/commit/d856bf2445a617835b1f656df0d03d31ce62ef65))
+
+##### Bug Fixes
+
+* **Custom:**  when selecting custom, the buildnumber should not be determined ([0696e756](https://github.com/shrknt35/release/commit/0696e75639f91ca649c354c578c6711b8c5422f9))
+
 #### 1.18.6.114 (2021-05-27)
 
 ##### Chores

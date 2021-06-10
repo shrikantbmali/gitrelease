@@ -183,5 +183,7 @@ namespace gitrelease.core
                 BuildNumber = buildNumber
             };
         }
+
+        public GitVersion GetVersionWithoutBuildNumber() => new GitVersion(this.Major, this.Minor, this.Patch);
     }
 }

@@ -40,7 +40,7 @@ namespace gitrelease.core.platforms
             }
             else if (rootDict["CFBundleShortVersionString"] is NSString nsString)
             {
-                nsString.Content = version.ToVersionString();
+                nsString.Content = version.GetVersionWithoutBuildNumber().ToVersionString();
             }
 
             if (!rootDict.ContainsKey("CFBundleVersion"))

@@ -1,3 +1,9 @@
+#### 1.18.7.120 (2021-06-10)
+
+##### Bug Fixes
+
+* **iOSVersion:**  the ios version should not use the 4th version place, as it is not accepted by apple while app submission ([504b2505](https://github.com/shrknt35/release/commit/504b2505450307f63576f5156c0655d8cc84fa93))
+
 #### 1.18.7.117 (2021-05-31)
 
 ##### Chores

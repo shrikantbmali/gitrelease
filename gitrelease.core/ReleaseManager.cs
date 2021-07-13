@@ -159,12 +159,14 @@ namespace gitrelease.core
 
         private static string GetBuildNumber(IRepository repo, ReleaseChoices releaseChoices)
         {
+            string BuildNumber() => repo.Commits.Count().ToString();
+
             if (releaseChoices.ReleaseType == ReleaseType.Custom)
             {
-                return releaseChoices.CustomVersion.BuildNumber;
+                return releaseChoices.CustomVersion.BuildNumber ?? BuildNumber();
             }
 
-            return repo.Commits.Count().ToString();
+            return BuildNumber();
         }
 
         private ReleaseManagerFlags CreateACommit(IRepository repo, GitVersion version, ConfigFile configFile)

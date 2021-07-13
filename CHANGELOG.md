@@ -1,3 +1,9 @@
+#### 1.19.0.123 (2021-07-13)
+
+##### Bug Fixes
+
+* **CustomeVersion:**  when setting custome version, the build number is optional ([db633716](https://github.com/shrknt35/release/commit/db63371626098287f82e7f885b90d0643a84bc7e))
+
 #### 1.19.0.121 (2021-06-10)
 
 #### 1.18.7.120 (2021-06-10)

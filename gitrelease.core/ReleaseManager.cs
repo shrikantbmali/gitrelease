@@ -614,7 +614,7 @@ namespace gitrelease.core
             if (isError)
                 return ReleaseManagerFlags.NBGVInstallationFailed;
 
-            (_, isError) = CommandExecutor.ExecuteCommand("./nbgv", "install", _rootDir);
+            (_, isError) = CommandExecutor.ExecuteCommand("nbgv", "install", _rootDir);
 
             return isError ? ReleaseManagerFlags.NBGVInitFailed : ReleaseManagerFlags.Ok;
         }

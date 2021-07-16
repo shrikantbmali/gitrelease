@@ -15,7 +15,7 @@ namespace gitrelease.cli
         {
             var rootCommand = new RootCommand {Handler = CommandHandler.Create<string, ReleaseType, string, string, bool, bool, bool, bool, uint, string, ChangeLogType, string>(ReleaseSequence)};
 
-            rootCommand.AddOption(new Option<string>(new[] { "--root", "-r" }, ParseRoot, true, "Specify the root folder if the current executing directory is not a intended folder"));
+            rootCommand.AddOption(new Option<string>(new[] { "--root", "-r" }, a => FindDirectory(ParseRoot(a)), true, "Specify the root folder if the current executing directory is not a intended folder"));
             rootCommand.AddOption(new Option<bool>(new[] { "--dry-run", "-d" }, () => false, "Runs a command dry without crating a tag and a commit."));
             rootCommand.AddOption(new Option<bool>(new[] { "--ignore-dirty", "-i" }, () => false, "Runs a command dry without crating a tag and a commit."));
             rootCommand.AddOption(new Option<bool>(new[] { "--skip-changelog", "-c" }, () => false, "Specify if changelog creation should be skipped."));
@@ -32,7 +32,7 @@ namespace gitrelease.cli
 
             getVersionCommand.AddAlias("gv");
             getVersionCommand.AddOption(new Option<string>(new[] { "--platform", "-t" }, () => "package", "Gets version for specific platform."));
-            getVersionCommand.AddOption(new Option<string>(new[] { "--root", "-r" }, ParseRoot, true, "Specify the root folder if the current executing directory is not a intended folder"));
+            getVersionCommand.AddOption(new Option<string>(new[] { "--root", "-r" }, a=> FindDirectory(ParseRoot(a)), true, "Specify the root folder if the current executing directory is not a intended folder"));
 
             rootCommand.AddCommand(getVersionCommand);
 
@@ -108,7 +108,7 @@ namespace gitrelease.cli
                 return Directory.GetCurrentDirectory();
             }
 
-            return FindDirectory(Path.IsPathRooted(pathValue) ? pathValue : Path.Combine(Directory.GetCurrentDirectory(), pathValue));
+            return Path.IsPathRooted(pathValue) ? pathValue : Path.Combine(Directory.GetCurrentDirectory(), pathValue);
         }
 
         private static int Init(string root, bool native)

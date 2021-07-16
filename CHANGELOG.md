@@ -1,3 +1,9 @@
+#### 1.21.0.126 (2021-07-16)
+
+##### Bug Fixes
+
+* **Init:**  fix init command ([b3055961](https://github.com/shrknt35/release/commit/b3055961ed443deebdc123a4cda9f78de04b60e4))
+
 #### 1.20.0.124 (2021-07-13)
 
 #### 1.19.0.123 (2021-07-13)

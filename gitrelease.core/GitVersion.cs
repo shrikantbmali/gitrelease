@@ -18,7 +18,9 @@ namespace gitrelease.core
 
         public string BuildNumber { get; private set; }
 
-        public static GitVersion Empty = new GitVersion(string.Empty, string.Empty, string.Empty);
+        public static readonly GitVersion InitDefault = new GitVersion("0", "0", "0");
+
+        public static readonly GitVersion Empty = new GitVersion(string.Empty, string.Empty, string.Empty);
 
         private GitVersion(string major, string minor, string patch)
         {

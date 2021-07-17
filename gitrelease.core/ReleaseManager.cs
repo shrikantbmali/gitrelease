@@ -77,12 +77,19 @@ namespace gitrelease.core
             return list;
         }
 
-        public ReleaseManagerFlags SetupRepo(bool generic)
+        public ReleaseManagerFlags SetupRepo(GitVersion version)
         {
             return ExecuteSafe(() =>
             {
                 return ExecuteRepoSafe(false, repo =>
                 {
+                    var releaseChoices = new ReleaseChoices
+                    {
+                        CustomVersion = version,
+                        ReleaseType = ReleaseType.Custom
+                    };
+
+                    version = DetermineNextVersion(repo, releaseChoices);
                     _messenger.Info("Staring Init sequence.");
                     var validityFlag = IsRepoReadyForSetup(repo);
 
@@ -100,25 +107,45 @@ namespace gitrelease.core
                     if (validityFlag != ReleaseManagerFlags.Ok)
                         return (RollbackInfo.Empty, validityFlag);
 
-                    if (!generic)
+                    validityFlag = InitDefaultConfig();
+
+                    var package = new Package(_rootDir);
+                    var configFile = package.GetConfig();
+
+                    if (validityFlag != ReleaseManagerFlags.Ok)
+                        return (RollbackInfo.Empty, validityFlag);
+
+                    if (!configFile.IsGenericProject)
                     {
                         _messenger.Info("Setting up dll version file.");
-                        validityFlag = InitNbgv();
+                        validityFlag = InitNbgv(version);
                     }
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
                         return (RollbackInfo.Empty, validityFlag);
 
-                    validityFlag = InitDefaultConfig(generic);
+                    validityFlag = package.SetVersion(version, configFile.IsGenericProject);
 
                     if (validityFlag != ReleaseManagerFlags.Ok)
                         return (RollbackInfo.Empty, validityFlag);
 
-                    validityFlag = Stage(repo);
+                    validityFlag = NpmInstall();
 
-                    return (RollbackInfo.Empty, validityFlag);
+                    if (validityFlag != ReleaseManagerFlags.Ok)
+                        return (RollbackInfo.Empty, validityFlag);
+
+                    var (rollbackInfo, result) = Release(repo, configFile, releaseChoices);
+
+                    validityFlag = result;
+
+                    return (rollbackInfo, validityFlag);
                 });
             });
+        }
+
+        private bool AskUserYesOrNo(string message)
+        {
+            return _messenger.AskUser(message + " (y/n)?", s => string.Equals(s, "y") || string.Equals(s, "n"))?.Equals("y") ?? false;
         }
 
         private (RollbackInfo RollbackInfo, ReleaseManagerFlags Result) Release(IRepository repo, ConfigFile configFile, ReleaseChoices releaseChoices)
@@ -144,7 +171,7 @@ namespace gitrelease.core
                 return (rollbackInfo, releaseFlag);
 
             if (!releaseChoices.DryRun)
-                releaseFlag = CreateACommit(repo, nextVersion, configFile);
+                releaseFlag = CreateACommit(repo, nextVersion);
 
             if (releaseFlag != ReleaseManagerFlags.Ok)
                 return (rollbackInfo, releaseFlag);
@@ -174,9 +201,6 @@ namespace gitrelease.core
                 _messenger.Info("Creating commit...");
                 releaseFlag = AmendLastCommit(repo, nextVersion, configFile);
             }
-
-            if (releaseFlag != ReleaseManagerFlags.Ok)
-                return (rollbackInfo, releaseFlag);
 
             return (rollbackInfo, releaseFlag);
         }
@@ -227,7 +251,7 @@ namespace gitrelease.core
             return BuildNumber();
         }
 
-        private ReleaseManagerFlags CreateACommit(IRepository repo, GitVersion version, ConfigFile configFile)
+        private ReleaseManagerFlags CreateACommit(IRepository repo, GitVersion version)
         {
             var result = Stage(repo);
 
@@ -236,7 +260,7 @@ namespace gitrelease.core
 
             try
             {
-                var sign = BuildSignature(repo, configFile);
+                var sign = BuildSignature(repo);
                 repo.Commit($"chore(VersionUpdate): {version.ToVersionString()}", sign, sign);
 
                 return ReleaseManagerFlags.Ok;
@@ -258,7 +282,7 @@ namespace gitrelease.core
 
             try
             {
-                var sign = BuildSignature(repo, configFile);
+                var sign = BuildSignature(repo);
                 repo.Commit($"chore(VersionUpdate): {version.ToVersionString()}", sign, sign, new CommitOptions()
                 {
                     AmendPreviousCommit = true,
@@ -274,7 +298,7 @@ namespace gitrelease.core
             return ReleaseManagerFlags.Unknown;
         }
 
-        private static Signature BuildSignature(IRepository repo, ConfigFile configFile)
+        private static Signature BuildSignature(IRepository repo)
         {
             var signature = repo.Config.BuildSignature(DateTime.Now);
 
@@ -584,29 +608,51 @@ namespace gitrelease.core
             return isError ? ReleaseManagerFlags.ChangelogGeneratorInstallFailed : ReleaseManagerFlags.Ok;
         }
 
-        private ReleaseManagerFlags InitDefaultConfig(bool generic)
+        private ReleaseManagerFlags InitDefaultConfig()
         {
+            IEnumerable<Platform> GetPlatform()
+            {
+                if (AskUserYesOrNo("Add version support in Xamarin iOS"))
+                {
+                    yield return new Platform
+                    {
+                        Name = "iOS",
+                        Path = _messenger.AskUser("Specify relative folder path where iOS .csproj file is.", path => IOSPlatform.IsValid(path, _rootDir))
+                    };
+                }
+
+                if (AskUserYesOrNo("Add version support in Xamarin Droid"))
+                {
+                    yield return new Platform
+                    {
+                        Name = "droid",
+                        Path = _messenger.AskUser("Specify relative folder path where Android .csproj file is.", path => DroidPlatform.IsValid(path, _rootDir))
+                    };
+                }
+
+                if (AskUserYesOrNo("Add version support in Xamarin UWP"))
+                {
+                    yield return new Platform
+                    {
+                        Name = "uwp",
+                        Path = _messenger.AskUser("Specify relative folder path where UWP .csproj file is.", path => UWPPlatform.IsValid(path, _rootDir))
+                    };
+                }
+            }
+
+            var skips = _messenger.AskUser("Skip scope from changelog [default(chore,docs)]", s => true);
+
             var save = new ConfigFile
             {
-                IsGenericProject = generic,
-                Platforms = new[]
-                {
-                    new Platform
-                    {
-                        Name = "ios/uwp/droid",
-                        Path = "path to the root of the specified platforms project."
-                    }
-                },
-                ChangelogOption = new ChangelogOption
-                {
-                    ExcludeType = "chore"
-                }
+                IsGenericProject = !AskUserYesOrNo("Is project Xamarin"),
+                Platforms = GetPlatform(),
+                ChangelogOption = new ChangelogOption {ExcludeType = string.IsNullOrEmpty(skips) ? "chore,docs" : skips }
             }.Save(Path.Combine(_rootDir, ConfigFileName.FixName));
 
             return save ? ReleaseManagerFlags.Ok : ReleaseManagerFlags.ConfigFileCreationFailed;
         }
 
-        private ReleaseManagerFlags InitNbgv()
+        private ReleaseManagerFlags InitNbgv(GitVersion version)
         {
             var (_, isError) =
                 CommandExecutor.ExecuteCommand("dotnet", "tool install --tool-path . nbgv --version 3.3.37", _rootDir);
@@ -614,7 +660,7 @@ namespace gitrelease.core
             if (isError)
                 return ReleaseManagerFlags.NBGVInstallationFailed;
 
-            (_, isError) = CommandExecutor.ExecuteCommand("nbgv", "install", _rootDir);
+            (_, isError) = CommandExecutor.ExecuteCommand("nbgv", $"install --version {version.ToVersionString()}", _rootDir);
 
             if (isError) 
                 return isError ? ReleaseManagerFlags.NBGVInitFailed : ReleaseManagerFlags.Ok;
@@ -630,6 +676,12 @@ namespace gitrelease.core
 
             return isError ? ReleaseManagerFlags.NPMInitFailed : ReleaseManagerFlags.Ok;
         }
+        private ReleaseManagerFlags NpmInstall()
+        {
+            var (_, isError) = CommandExecutor.ExecuteCommand("npm", "install", _rootDir);
+
+            return isError ? ReleaseManagerFlags.NPMInitFailed : ReleaseManagerFlags.Ok;
+        }
     }
 
     internal class RollbackInfo
@@ -642,5 +694,6 @@ namespace gitrelease.core
     {
         void Info(string message);
         void Error(Exception exception);
+        string AskUser(string message, Func<string, bool> validate);
     }
 }

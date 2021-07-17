@@ -6,6 +6,8 @@ namespace gitrelease.core.platforms
 {
     internal class IOSPlatform : IPlatform
     {
+        private const string PlistFile = "Info.plist";
+
         private string path;
 
         public PlatformType Type { get; } = PlatformType.IOS;
@@ -36,7 +38,7 @@ namespace gitrelease.core.platforms
 
             if (!rootDict.ContainsKey("CFBundleShortVersionString"))
             {
-                rootDict.Add("CFBundleShortVersionString", version);
+                rootDict.Add("CFBundleShortVersionString", version.ToVersionString());
             }
             else if (rootDict["CFBundleShortVersionString"] is NSString nsString)
             {
@@ -45,7 +47,7 @@ namespace gitrelease.core.platforms
 
             if (!rootDict.ContainsKey("CFBundleVersion"))
             {
-                rootDict.Add("CFBundleVersion", version);
+                rootDict.Add("CFBundleVersion", version.ToVersionString());
             }
             else if (rootDict["CFBundleVersion"] is NSString nsString)
             {
@@ -54,7 +56,7 @@ namespace gitrelease.core.platforms
 
             PropertyListParser.SaveAsXml(rootDict, new FileInfo(plistFilePath));
 
-            return (ReleaseManagerFlags.Ok, new string[]{plistFilePath});
+            return (ReleaseManagerFlags.Ok, new[]{plistFilePath});
         }
 
         public string GetVersion()
@@ -81,9 +83,14 @@ namespace gitrelease.core.platforms
             return "Invalid directory";
         }
 
-        private string GetPlistFilePath(string path)
+        private static string GetPlistFilePath(string path)
         {
-            return Directory.GetFiles(path, "Info.plist").FirstOrDefault();
+            return Directory.GetFiles(path, PlistFile).FirstOrDefault();
+        }
+
+        public static bool IsValid(string path, string root)
+        {
+            return File.Exists(Path.Combine(Path.IsPathRooted(path) ? path : Path.Combine(root, path), PlistFile));
         }
     }
 }

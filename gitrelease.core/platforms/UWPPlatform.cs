@@ -110,6 +110,11 @@ namespace gitrelease.core.platforms
         {
             return Directory.GetFiles(path, "Package.appxmanifest").FirstOrDefault();
         }
+
+        public static bool IsValid(string path, string root)
+        {
+            return File.Exists(Path.Combine(Path.IsPathRooted(path) ? path : Path.Combine(root, path), "Package.appxmanifest"));
+        }
     }
 
     internal static class GitVersionUwpExtension

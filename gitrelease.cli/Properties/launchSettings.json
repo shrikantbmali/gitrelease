@@ -2,7 +2,7 @@
   "profiles": {
     "gitrelease.cli": {
       "commandName": "Project",
-      "commandLineArgs": "init -r C:\\Users\\ShrikantMali\\sandbox\\ac\\acapp"
+      "commandLineArgs": "init -r C:\\Users\\ShrikantMali\\sandbox\\dry\\SkiaSharp"
     },
     "WSL 2": {
       "commandName": "WSL2",

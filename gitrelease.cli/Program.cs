@@ -36,10 +36,11 @@ namespace gitrelease.cli
 
             rootCommand.AddCommand(getVersionCommand);
 
-            var initCommand = new Command("init", "Initialized the repo for git-release workflow") {Handler = CommandHandler.Create<string, bool>(Init)};
+            var initCommand = new Command("init", "Initialized the repo for git-release workflow") {Handler = CommandHandler.Create<string, string>(Init)};
 
             initCommand.AddOption(new Option<string>(new[] { "--root", "-r" }, ParseRoot, true, "Specify the root folder if the current executing directory is not a intended folder"));
-            initCommand.AddOption(new Option<bool>(new[] { "--native", "-n" }, () => false, "Select in case the project is not a xamarin project."));
+            //initCommand.AddOption(new Option<bool>(new[] { "--native", "-n" }, () => false, "Select in case the project is not a xamarin project."));
+            initCommand.AddOption(new Option<string>(new[] { "--version", "-v" }, () => GitVersion.InitDefault.ToVersionString(), "Select in case the project is not a xamarin project."));
 
             rootCommand.AddCommand(initCommand);
 
@@ -111,7 +112,7 @@ namespace gitrelease.cli
             return Path.IsPathRooted(pathValue) ? pathValue : Path.Combine(Directory.GetCurrentDirectory(), pathValue);
         }
 
-        private static int Init(string root, bool native)
+        private static int Init(string root, string version)
         {
             var releaseManager = new ReleaseManager(root, CreateMessenger());
 
@@ -123,7 +124,7 @@ namespace gitrelease.cli
                 return (int)result;
             }
 
-            result = releaseManager.SetupRepo(native);
+            result = releaseManager.SetupRepo(GitVersion.Parse(version));
 
             DumpMessage(result);
             return (int)result;
@@ -191,6 +192,21 @@ namespace gitrelease.cli
         public void Error(Exception exception)
         {
             Colorful.Console.WriteLineFormatted(exception?.ToString(), Color.Red);
+        }
+
+        public string AskUser(string message, Func<string, bool> validate)
+        {
+            while (true)
+            {
+                Info(message);
+
+                var input = Console.ReadLine();
+
+                var valid = validate(input);
+
+                if (valid)
+                    return input;
+            }
         }
     }
 }

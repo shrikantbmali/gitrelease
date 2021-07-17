@@ -47,7 +47,11 @@ namespace gitrelease.core
             try
             {
                 var js = JsonConvert.SerializeObject(file, Formatting.Indented);
-                File.WriteAllText(filePath, js);
+                using FileStream fileStream = File.Open(filePath, FileMode.OpenOrCreate);
+                using var streamWriter = new StreamWriter(fileStream);
+                streamWriter.Write(js);
+                streamWriter.Flush();
+                fileStream.Flush(true);
             }
             catch (Exception ex)
             {

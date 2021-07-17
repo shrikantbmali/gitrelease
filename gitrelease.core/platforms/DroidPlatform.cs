@@ -81,5 +81,10 @@ namespace gitrelease.core.platforms
         {
             return Directory.GetFiles(Path.Combine(path, "Properties"), "AndroidManifest.xml").FirstOrDefault();
         }
+
+        public static bool IsValid(string path, string root)
+        {
+            return File.Exists(Path.Combine(Path.IsPathRooted(path) ? path : Path.Combine(root, path), "Properties", "AndroidManifest.xml"));
+        }
     }
 }

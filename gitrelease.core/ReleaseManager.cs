@@ -619,7 +619,7 @@ namespace gitrelease.core
             if (isError) 
                 return isError ? ReleaseManagerFlags.NBGVInitFailed : ReleaseManagerFlags.Ok;
 
-            (_, isError) = CommandExecutor.ExecuteCommand("dotnet", "tool uninstall --tool-path . nbgv --version 3.3.37", _rootDir);
+            (_, isError) = CommandExecutor.ExecuteCommand("dotnet", "tool uninstall --tool-path . nbgv", _rootDir);
 
             return isError ? ReleaseManagerFlags.NBGVUninstallationFailed : ReleaseManagerFlags.Ok;
         }

@@ -1,3 +1,9 @@
+#### 1.22.0.128 (2021-07-17)
+
+##### Bug Fixes
+
+* **FindParent:**  find parent directory failed to get parent when provided parent path was null ([ceb9b852](https://github.com/shrknt35/release/commit/ceb9b8528744fe5677a2612345b4f81550bdff1b))
+
 #### 1.21.0.126 (2021-07-16)
 
 ##### Bug Fixes

@@ -63,6 +63,64 @@ namespace gitrelease.core
             });
         }
 
+        public IEnumerable<string> GetVersion(string platformName)
+        {
+            var list = new List<string> { GetCurrentVersion(new ReleaseChoices()).ToString() }.AsEnumerable();
+
+            if (!platformName.Equals("package"))
+            {
+                list = list.Union(platformName == "all"
+                    ? CreatePlatforms(_package.GetConfig().Platforms).Select(p => p.Value.GetVersion()).ToArray()
+                    : new[] { CreatePlatforms(_package.GetConfig().Platforms)[platformName].GetVersion() });
+            }
+
+            return list;
+        }
+
+        public ReleaseManagerFlags SetupRepo(bool generic)
+        {
+            return ExecuteSafe(() =>
+            {
+                return ExecuteRepoSafe(false, repo =>
+                {
+                    _messenger.Info("Staring Init sequence.");
+                    var validityFlag = IsRepoReadyForSetup(repo);
+
+                    if (validityFlag != ReleaseManagerFlags.Ok)
+                        return (RollbackInfo.Empty, validityFlag);
+
+                    _messenger.Info("Initializing Changelog.");
+                    validityFlag = InitNpm();
+
+                    if (validityFlag != ReleaseManagerFlags.Ok)
+                        return (RollbackInfo.Empty, validityFlag);
+
+                    validityFlag = InstallChangelogGenerator();
+
+                    if (validityFlag != ReleaseManagerFlags.Ok)
+                        return (RollbackInfo.Empty, validityFlag);
+
+                    if (!generic)
+                    {
+                        _messenger.Info("Setting up dll version file.");
+                        validityFlag = InitNbgv();
+                    }
+
+                    if (validityFlag != ReleaseManagerFlags.Ok)
+                        return (RollbackInfo.Empty, validityFlag);
+
+                    validityFlag = InitDefaultConfig(generic);
+
+                    if (validityFlag != ReleaseManagerFlags.Ok)
+                        return (RollbackInfo.Empty, validityFlag);
+
+                    validityFlag = Stage(repo);
+
+                    return (RollbackInfo.Empty, validityFlag);
+                });
+            });
+        }
+
         private (RollbackInfo RollbackInfo, ReleaseManagerFlags Result) Release(IRepository repo, ConfigFile configFile, ReleaseChoices releaseChoices)
         {
             var rollbackInfo = new RollbackInfo();
@@ -512,64 +570,6 @@ namespace gitrelease.core
             return ReleaseManagerFlags.Unknown;
         }
 
-        public IEnumerable<string> GetVersion(string platformName)
-        {
-            var list = new List<string> {GetCurrentVersion(new ReleaseChoices()).ToString()}.AsEnumerable();
-
-            if (!platformName.Equals("package"))
-            {
-                list = list.Union(platformName == "all"
-                    ? CreatePlatforms(_package.GetConfig().Platforms).Select(p => p.Value.GetVersion()).ToArray()
-                    : new[] { CreatePlatforms(_package.GetConfig().Platforms)[platformName].GetVersion() });
-            }
-
-            return list;
-        }
-
-        public ReleaseManagerFlags SetupRepo(bool generic)
-        {
-            return ExecuteSafe(() =>
-            {
-                return ExecuteRepoSafe(false, repo =>
-                {
-                    _messenger.Info("Staring Init sequence.");
-                    var validityFlag = IsRepoReadyForSetup(repo);
-
-                    if (validityFlag != ReleaseManagerFlags.Ok)
-                        return (RollbackInfo.Empty, validityFlag);
-
-                    _messenger.Info("Initializing Changelog.");
-                    validityFlag = InitNpm();
-
-                    if (validityFlag != ReleaseManagerFlags.Ok)
-                        return (RollbackInfo.Empty, validityFlag);
-
-                    validityFlag = InstallChangelogGenerator();
-
-                    if (validityFlag != ReleaseManagerFlags.Ok)
-                        return (RollbackInfo.Empty, validityFlag);
-
-                    if (!generic)
-                    {
-                        _messenger.Info("Setting up dll version file.");
-                        validityFlag = InitNbgv();
-                    }
-
-                    if (validityFlag != ReleaseManagerFlags.Ok)
-                        return (RollbackInfo.Empty, validityFlag);
-
-                    validityFlag = InitDefaultConfig(generic);
-
-                    if (validityFlag != ReleaseManagerFlags.Ok)
-                        return (RollbackInfo.Empty, validityFlag);
-
-                    validityFlag = Stage(repo);
-
-                    return (RollbackInfo.Empty, validityFlag);
-                });
-            });
-        }
-
         private ReleaseManagerFlags InstallChangelogGenerator()
         {
             var (_, isError) =
@@ -591,9 +591,9 @@ namespace gitrelease.core
                 IsGenericProject = generic,
                 Platforms = new[]
                 {
-                    new Platform()
+                    new Platform
                     {
-                        Name = "platform name, supported are [ios, droid, uwp]. or it can be left empty in case of simple dotnet project.",
+                        Name = "ios/uwp/droid",
                         Path = "path to the root of the specified platforms project."
                     }
                 },
@@ -629,20 +629,6 @@ namespace gitrelease.core
             var (_, isError) = CommandExecutor.ExecuteCommand("npm", "init -f", _rootDir);
 
             return isError ? ReleaseManagerFlags.NPMInitFailed : ReleaseManagerFlags.Ok;
-        }
-
-        public void IncrementBuildVersion(string platform)
-        {
-            if (_package.IsInitialized())
-            {
-                var platforms = CreatePlatforms(_package.GetConfig().Platforms);
-
-                if (platforms.ContainsKey(platform))
-                {
-                    var version = platforms[platform].GetVersion();
-                    _messenger.Info(version);
-                }
-            }
         }
     }
 

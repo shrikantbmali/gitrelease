@@ -138,17 +138,19 @@ namespace gitrelease.cli
         {
             try
             {
-                while (true)
+                while (root != null)
                 {
                     var configFile = Directory.GetFiles(root, ConfigFileName.FixName);
+
                     if (configFile.Any())
                     {
                         return root;
                     }
 
                     root = Path.GetDirectoryName(root);
-                }
+                } 
 
+                return null;
             }
             catch (Exception ex)
             {

@@ -20,7 +20,8 @@
         NPMInitFailed = -25,
         NBGVInstallationFailed = -26,
         NBGVInitFailed = -27,
-        ChangelogGeneratorInstallFailed = -28,
-        ConfigFileCreationFailed = -29
+        NBGVUninstallationFailed = -28,
+        ChangelogGeneratorInstallFailed = -29,
+        ConfigFileCreationFailed = -30
     }
 }

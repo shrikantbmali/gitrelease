@@ -13,7 +13,7 @@
 		<IsPackable>True</IsPackable>
 		<Title>Gitrelease: the release management for Xamarin Applications.</Title>
 		<PackageReleaseNotes>A changelog is available at https://github.com/shrknt35/gitrelease/blob/main/CHANGELOG.md.</PackageReleaseNotes>
-		<PackageLicenseUrl>https://raw.githubusercontent.com/gitrelease/blob/main/LICENSE</PackageLicenseUrl>
+		<PackageLicense>https://raw.githubusercontent.com/gitrelease/blob/main/LICENSE</PackageLicense>
 		<PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
 		<PackageTags>gitrelease;xamarin;release;xamarin-ios;xamarin-droid;uwp</PackageTags>
 		<PackageProjectUrl>https://github.com/shrknt35/gitrelease</PackageProjectUrl>

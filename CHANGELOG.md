@@ -1,3 +1,13 @@
+#### 1.24.0.132 (2021-07-18)
+
+##### New Features
+
+* **Init:**  ability to configure everything on command line while init ([717a24d8](https://github.com/shrknt35/release/commit/717a24d80de66ae5c19506c429fefbbe5078ef6b))
+
+##### Refactors
+
+* **Init:**  change default config to replace name description to suggestion choices available ([3eea506a](https://github.com/shrknt35/release/commit/3eea506aded58901086b56a8261b60065a0c032e))
+
 #### 1.23.0.129 (2021-07-17)
 
 #### 1.22.0.128 (2021-07-17)

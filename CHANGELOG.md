@@ -1,3 +1,13 @@
+#### 1.25.0.135 (2021-07-18)
+
+##### Bug Fixes
+
+* **Nuget:**  remove deprecated LicenseUrl tag with License ([93cca8a4](https://github.com/shrknt35/release/commit/93cca8a4b17af2c982817b678b03e666b2222ecb))
+
+##### Refactors
+
+* **Packages:**  update nuget Packages ([9fb78d80](https://github.com/shrknt35/release/commit/9fb78d80938e20d5d045aa93c86dc2a7777318db))
+
 #### 1.24.0.132 (2021-07-18)
 
 ##### New Features

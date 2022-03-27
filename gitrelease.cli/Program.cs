@@ -1,6 +1,5 @@
 ﻿using System;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Drawing;
 using System.IO;
@@ -13,7 +12,31 @@ namespace gitrelease.cli
     {
         private static int Main(string[] args)
         {
-            var rootCommand = new RootCommand {Handler = CommandHandler.Create<string, ReleaseType, string, string, bool, bool, bool, bool, uint, string, ChangeLogType, string>(ReleaseSequence)};
+            var rootCommand = new RootCommand();
+            rootCommand.SetHandler((
+                string root,
+                ReleaseType releaseType,
+                string version,
+                string preReleaseTag,
+                bool dryRun,
+                bool skipTag,
+                bool skipChangelog,
+                bool ignoreDirty,
+                uint changelogCharacterLimit,
+                string changelogFileName,
+                ChangeLogType changelogType,
+                string appendString) => ReleaseSequence(
+                    root,
+                    releaseType,
+                    version,
+                    preReleaseTag,
+                    dryRun,
+                    skipTag,
+                    skipChangelog,
+                    ignoreDirty,
+                    changelogCharacterLimit,
+                    changelogFileName,
+                    changelogType,appendString));
 
             rootCommand.AddOption(new Option<string>(new[] { "--root", "-r" }, a => FindDirectory(ParseRoot(a)), true, "Specify the root folder if the current executing directory is not a intended folder"));
             rootCommand.AddOption(new Option<bool>(new[] { "--dry-run", "-d" }, () => false, "Runs a command dry without crating a tag and a commit."));
@@ -28,15 +51,17 @@ namespace gitrelease.cli
             rootCommand.AddArgument(new Argument<ReleaseType>("release-type", "Specify the release type") {Arity = ArgumentArity.ExactlyOne});
             rootCommand.AddArgument(new Argument<string>("version", "Specify the release version") {Arity = ArgumentArity.ZeroOrOne});
             
-            var getVersionCommand = new Command("get-version", "Gets the current versions used by repositories.") {Handler = CommandHandler.Create<string, string>(GetVersion)};
+            var getVersionCommand = new Command("get-version", "Gets the current versions used by repositories.");
+            getVersionCommand.SetHandler((string root, string platform) => GetVersion(root, platform));
 
             getVersionCommand.AddAlias("gv");
             getVersionCommand.AddOption(new Option<string>(new[] { "--platform", "-t" }, () => "package", "Gets version for specific platform."));
-            getVersionCommand.AddOption(new Option<string>(new[] { "--root", "-r" }, a=> FindDirectory(ParseRoot(a)), true, "Specify the root folder if the current executing directory is not a intended folder"));
+            getVersionCommand.AddOption(new Option<string>(new[] { "--root", "-r" }, a => FindDirectory(ParseRoot(a)), true, "Specify the root folder if the current executing directory is not a intended folder"));
 
             rootCommand.AddCommand(getVersionCommand);
 
-            var initCommand = new Command("init", "Initialized the repo for git-release workflow") {Handler = CommandHandler.Create<string, string>(Init)};
+            var initCommand = new Command("init", "Initialized the repo for git-release workflow");
+            initCommand.SetHandler((string root, string version) => Init(root, version));
 
             initCommand.AddOption(new Option<string>(new[] { "--root", "-r" }, ParseRoot, true, "Specify the root folder if the current executing directory is not a intended folder"));
             //initCommand.AddOption(new Option<bool>(new[] { "--native", "-n" }, () => false, "Select in case the project is not a xamarin project."));
@@ -49,19 +74,7 @@ namespace gitrelease.cli
             return rootCommand.Invoke(args);
         }
 
-        private static int ReleaseSequence(
-            string root,
-            ReleaseType releaseType,
-            string version,
-            string preReleaseTag,
-            bool dryRun,
-            bool skipTag,
-            bool skipChangelog,
-            bool ignoreDirty,
-            uint changelogCharacterLimit,
-            string changelogFileName,
-            ChangeLogType changelogType,
-            string appendString)
+        private static int ReleaseSequence(string root,ReleaseType releaseType,string version,string preReleaseTag,bool dryRun,bool skipTag,bool skipChangelog,bool ignoreDirty,uint changelogCharacterLimit,string changelogFileName,ChangeLogType changelogType,string appendString)
         {
             root = FindDirectory(root);
 
@@ -102,7 +115,7 @@ namespace gitrelease.cli
 
         private static string ParseRoot(ArgumentResult result)
         {
-            var pathValue = result.Tokens.FirstOrDefault()?.Value;
+            var pathValue = result.Tokens.FirstOrDefault().Value;
             
             if (string.IsNullOrEmpty(pathValue))
             {

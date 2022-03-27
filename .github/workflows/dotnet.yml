@@ -25,20 +25,23 @@ jobs:
     - name: Restore Tools
       run: |
         dotnet tool install --tool-path . nbgv
-        dotnet tool install -g git-release
+        dotnet tool install --tool-path . git-release --version 1.20.0
 
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build -c RELEASE /p:PublicRelease=true
+    
     - name: Pack--
       run: |
         npm --version
         npm install
         gitrelease buildnumber -d -i -r . -c
         dotnet pack -c RELEASE /p:PublicRelease=true
+
     - name: Check version
       run: ./nbgv get-version
+    
     - name: Push
       run: dotnet nuget push ./nupkg/git-release.*.nupkg --api-key ${{secrets.NUGETTOKEN}} --source https://api.nuget.org/v3/index.json
 

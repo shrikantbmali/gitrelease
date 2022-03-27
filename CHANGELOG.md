@@ -1,3 +1,9 @@
+#### 1.26.0-beta.139 (2022-03-27)
+
+##### Bug Fixes
+
+* **PackageUpdates:**  conform to the new way of providing options and arguments ([3c08123f](https://github.com/shrknt35/release/commit/3c08123f6b27faeddb7c6caf470b99b6e10e7c15))
+
 #### 1.26.0-beta.137 (2022-03-27)
 
 #### 1.25.0.135 (2021-07-18)

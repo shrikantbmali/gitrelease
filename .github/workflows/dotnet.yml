@@ -9,13 +9,18 @@ on:
 
 jobs:
   build:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest,  windows-latest]
 
-    runs-on: ubuntu-18.04
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
+        clean: true
+    
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
@@ -28,6 +33,7 @@ jobs:
 
     - name: Restore Tools
       run: |
+        dotnet --version
         dotnet tool install --tool-path . nbgv
         dotnet tool install --tool-path . git-release --version 1.20.0
 
@@ -36,11 +42,14 @@ jobs:
     - name: Build
       run: dotnet build -c RELEASE -p:PublicRelease=true
     
-    - name: Pack--
+    - name: Update version
       run: |
         npm --version
         npm install
-        ./gitrelease buildnumber -d -i -r . -c
+      # ./gitrelease buildnumber -d -i -r . -c
+    
+    - name: Pack
+      run: |
         dotnet pack -c RELEASE -p:PublicRelease=true
 
     - name: Check version

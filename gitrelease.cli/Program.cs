@@ -12,6 +12,21 @@ namespace gitrelease.cli
     {
         private static int Main(string[] args)
         {
+            var rootOption = new Option<string>(new[] { "--root", "-r" }, ParseRoot, true, "Specify the root folder if the current executing directory is not a intended folder");
+            var dryRunOption = new Option<bool>(new[] { "--dry-run", "-d" }, () => false, "Runs a command dry without crating a tag and a commit.");
+            var ignoreDirtyOption = new Option<bool>(new[] { "--ignore-dirty", "-i" }, () => false, "Runs a command dry without crating a tag and a commit.");
+            var skipChangelogOption = new Option<bool>(new[] { "--skip-changelog", "-c" }, () => false, "Specify if changelog creation should be skipped.");
+            var changelogCharacterLimitOption = new Option<uint>(new[] { "--changelog-character-limit" }, () => 0, "Specify the limit of characters limit for changelog file (strictly implemented for azure dev-ops limit of 5000 characters).");
+            var changelogFilenameOption = new Option<string>(new[] { "--changelog-filename" }, () => "CHANGELOG.md", "Specify the changelog filename.");
+            var changelogTypeOption = new Option<ChangeLogType>(new[] { "--changelog-type" }, () => ChangeLogType.Incremental, "Specify the changelog type.");
+            var skipTagOption = new Option<bool>(new[] { "--skip-tag", "-t" }, () => false, "Specify if tag creation should skipped");
+            var preReleaseOption = new Option<string>(new[] { "--pre-release-tag", "-p" }, "Any pre release tap you'd like to add to the version.");
+            var appendStringOption = new Option<string>(new[] { "--append-string" }, () => string.Empty, "Specify the string you'd like to append at the end. It will only be appended in Incremental changelog type.");
+            var releaseTypeArgument = new Argument<ReleaseType>("release-type", "Specify the release type") {Arity = ArgumentArity.ExactlyOne};
+            var versionArgument = new Argument<string>("version", "Specify the release version") {Arity = ArgumentArity.ZeroOrOne};
+            var versionOption = new Option<string>(new[] { "--version", "-v" }, () => GitVersion.InitDefault.ToVersionString(), "Select in case the project is not a xamarin project.");
+            var platformOption = new Option<string>(new[] { "--platform", "-t" }, () => "package", "Gets version for specific platform.");
+
             var rootCommand = new RootCommand();
             rootCommand.SetHandler((
                 string root,
@@ -36,36 +51,47 @@ namespace gitrelease.cli
                     ignoreDirty,
                     changelogCharacterLimit,
                     changelogFileName,
-                    changelogType,appendString));
+                    changelogType,
+                    appendString),
+                    rootOption,
+                    releaseTypeArgument,
+                    versionArgument,
+                    preReleaseOption,
+                    dryRunOption,
+                    skipTagOption,
+                    skipChangelogOption,
+                    ignoreDirtyOption,
+                    changelogCharacterLimitOption,
+                    changelogFilenameOption,
+                    changelogTypeOption,
+                    appendStringOption);
 
-            rootCommand.AddOption(new Option<string>(new[] { "--root", "-r" }, a => FindDirectory(ParseRoot(a)), true, "Specify the root folder if the current executing directory is not a intended folder"));
-            rootCommand.AddOption(new Option<bool>(new[] { "--dry-run", "-d" }, () => false, "Runs a command dry without crating a tag and a commit."));
-            rootCommand.AddOption(new Option<bool>(new[] { "--ignore-dirty", "-i" }, () => false, "Runs a command dry without crating a tag and a commit."));
-            rootCommand.AddOption(new Option<bool>(new[] { "--skip-changelog", "-c" }, () => false, "Specify if changelog creation should be skipped."));
-            rootCommand.AddOption(new Option<uint>(new[] { "--changelog-character-limit" }, () => 0, "Specify the limit of characters limit for changelog file (strictly implemented for azure dev-ops limit of 5000 characters)."));
-            rootCommand.AddOption(new Option<string>(new[] { "--changelog-filename" }, () => "CHANGELOG.md", "Specify the changelog filename."));
-            rootCommand.AddOption(new Option<ChangeLogType>(new[] { "--changelog-type" }, () => ChangeLogType.Incremental, "Specify the changelog type."));
-            rootCommand.AddOption(new Option<bool>(new[] { "--skip-tag", "-t" }, () => false, "Specify if tag creation should skipped"));
-            rootCommand.AddOption(new Option<string>(new[] { "--pre-release-tag", "-p" }, "Any pre release tap you'd like to add to the version."));
-            rootCommand.AddOption(new Option<string>(new[] { "--append-string" }, () => string.Empty, "Specify the string you'd like to append at the end. It will only be appended in Incremental changelog type."));
-            rootCommand.AddArgument(new Argument<ReleaseType>("release-type", "Specify the release type") {Arity = ArgumentArity.ExactlyOne});
-            rootCommand.AddArgument(new Argument<string>("version", "Specify the release version") {Arity = ArgumentArity.ZeroOrOne});
+
+            rootCommand.AddOption(rootOption);
+            rootCommand.AddOption(dryRunOption);
+            rootCommand.AddOption(ignoreDirtyOption);
+            rootCommand.AddOption(skipChangelogOption);
+            rootCommand.AddOption(changelogCharacterLimitOption);
+            rootCommand.AddOption(changelogFilenameOption);
+            rootCommand.AddOption(changelogTypeOption);
+            rootCommand.AddOption(skipTagOption);
+            rootCommand.AddOption(preReleaseOption);
+            rootCommand.AddOption(appendStringOption);
+            rootCommand.AddArgument(releaseTypeArgument);
+            rootCommand.AddArgument(versionArgument);
             
             var getVersionCommand = new Command("get-version", "Gets the current versions used by repositories.");
-            getVersionCommand.SetHandler((string root, string platform) => GetVersion(root, platform));
-
+            getVersionCommand.SetHandler((string root, string platform) => GetVersion(root, platform), rootOption, platformOption);
             getVersionCommand.AddAlias("gv");
-            getVersionCommand.AddOption(new Option<string>(new[] { "--platform", "-t" }, () => "package", "Gets version for specific platform."));
-            getVersionCommand.AddOption(new Option<string>(new[] { "--root", "-r" }, a => FindDirectory(ParseRoot(a)), true, "Specify the root folder if the current executing directory is not a intended folder"));
+            getVersionCommand.AddOption(platformOption);
+            getVersionCommand.AddOption(rootOption);
 
             rootCommand.AddCommand(getVersionCommand);
 
             var initCommand = new Command("init", "Initialized the repo for git-release workflow");
-            initCommand.SetHandler((string root, string version) => Init(root, version));
-
-            initCommand.AddOption(new Option<string>(new[] { "--root", "-r" }, ParseRoot, true, "Specify the root folder if the current executing directory is not a intended folder"));
-            //initCommand.AddOption(new Option<bool>(new[] { "--native", "-n" }, () => false, "Select in case the project is not a xamarin project."));
-            initCommand.AddOption(new Option<string>(new[] { "--version", "-v" }, () => GitVersion.InitDefault.ToVersionString(), "Select in case the project is not a xamarin project."));
+            initCommand.SetHandler((string root, string version) => Init(root, version), rootOption, versionOption);
+            initCommand.AddOption(rootOption);
+            initCommand.AddOption(versionOption);
 
             rootCommand.AddCommand(initCommand);
 
@@ -74,9 +100,26 @@ namespace gitrelease.cli
             return rootCommand.Invoke(args);
         }
 
-        private static int ReleaseSequence(string root,ReleaseType releaseType,string version,string preReleaseTag,bool dryRun,bool skipTag,bool skipChangelog,bool ignoreDirty,uint changelogCharacterLimit,string changelogFileName,ChangeLogType changelogType,string appendString)
+        private static int ReleaseSequence(
+            string root,
+            ReleaseType releaseType,
+            string version,
+            string preReleaseTag,
+            bool dryRun,
+            bool skipTag,
+            bool skipChangelog,
+            bool ignoreDirty,
+            uint changelogCharacterLimit,
+            string changelogFileName,
+            ChangeLogType changelogType,
+            string appendString)
         {
             root = FindDirectory(root);
+            if (string.IsNullOrEmpty(root))
+            {
+                new ConsoleMessenger().Error(
+                    new FileNotFoundException("Invalid directory, provided directory or any of it's parents do not have a version.config file."));
+            }
 
             if (releaseType == ReleaseType.Custom && !GitVersion.IsValid(version))
             {

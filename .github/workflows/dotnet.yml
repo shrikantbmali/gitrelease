@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'v*'
+
+  workflow_dispatch:
+
 jobs:
   build:
 
@@ -30,14 +33,14 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build -c RELEASE /p:PublicRelease=true
+      run: dotnet build -c RELEASE -p:PublicRelease=true
     
     - name: Pack--
       run: |
         npm --version
         npm install
-        gitrelease buildnumber -d -i -r . -c
-        dotnet pack -c RELEASE /p:PublicRelease=true
+        ./gitrelease buildnumber -d -i -r . -c
+        dotnet pack -c RELEASE -p:PublicRelease=true
 
     - name: Check version
       run: ./nbgv get-version

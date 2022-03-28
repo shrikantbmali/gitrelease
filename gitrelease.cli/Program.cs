@@ -16,7 +16,7 @@ namespace gitrelease.cli
             var dryRunOption = new Option<bool>(new[] { "--dry-run", "-d" }, () => false, "Runs a command dry without crating a tag and a commit.");
             var ignoreDirtyOption = new Option<bool>(new[] { "--ignore-dirty", "-i" }, () => false, "Runs a command dry without crating a tag and a commit.");
             var skipChangelogOption = new Option<bool>(new[] { "--skip-changelog", "-c" }, () => false, "Specify if changelog creation should be skipped.");
-            var changelogCharacterLimitOption = new Option<uint>(new[] { "--changelog-character-limit" }, () => 0, "Specify the limit of characters limit for changelog file (strictly implemented for azure dev-ops limit of 5000 characters).");
+            var changelogCharacterLimitOption = new Option<int>(new[] { "--changelog-character-limit" }, () => 0, "Specify the limit of characters limit for changelog file (strictly implemented for azure dev-ops limit of 5000 characters).");
             var changelogFilenameOption = new Option<string>(new[] { "--changelog-filename" }, () => "CHANGELOG.md", "Specify the changelog filename.");
             var changelogTypeOption = new Option<ChangeLogType>(new[] { "--changelog-type" }, () => ChangeLogType.Incremental, "Specify the changelog type.");
             var skipTagOption = new Option<bool>(new[] { "--skip-tag", "-t" }, () => false, "Specify if tag creation should skipped");
@@ -37,7 +37,7 @@ namespace gitrelease.cli
                 bool skipTag,
                 bool skipChangelog,
                 bool ignoreDirty,
-                uint changelogCharacterLimit,
+                int changelogCharacterLimit,
                 string changelogFileName,
                 ChangeLogType changelogType,
                 string appendString) => ReleaseSequence(
@@ -109,7 +109,7 @@ namespace gitrelease.cli
             bool skipTag,
             bool skipChangelog,
             bool ignoreDirty,
-            uint changelogCharacterLimit,
+            int changelogCharacterLimit,
             string changelogFileName,
             ChangeLogType changelogType,
             string appendString)

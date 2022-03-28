@@ -14,7 +14,7 @@
 
         public bool IgnoreDirty { get; set; }
 
-        public uint ChangelogCharacterLimit { get; set; }
+        public int ChangelogCharacterLimit { get; set; }
 
         public ChangeLogType ChangeLogType { get; set; }
         

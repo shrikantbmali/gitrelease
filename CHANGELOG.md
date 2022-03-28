@@ -1,3 +1,9 @@
+#### 1.26.1.145 (2022-03-28)
+
+##### Bug Fixes
+
+* **Options:**  the argument type uint could not be parsed, so changed that to int ([d055ca9c](https://github.com/shrknt35/release/commit/d055ca9c9feb8f9eb76913983638f25fe1d404b5))
+
 #### 1.26.1.143 (2022-03-28)
 
 #### 1.26.0-beta.141 (2022-03-27)

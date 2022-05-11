@@ -21,6 +21,8 @@
         public string ChangelogFileName { get; set; }
         
         public string AppendValue { get; set; }
+
+        public bool SkipSign { get; set; }
     }
 
     public enum ChangeLogType

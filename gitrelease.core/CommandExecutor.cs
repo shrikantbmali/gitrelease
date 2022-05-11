@@ -48,7 +48,7 @@ namespace gitrelease.core
         private static (string output, bool isError) IsError(Response process)
         {
             var isError = process.code != 0;
-            return (isError ? process.stdout : process.stderr, isError);
+            return ($"StdOut: {process.stdout} {Environment.NewLine}Error: {process.stderr}", isError);
         }
     }
 

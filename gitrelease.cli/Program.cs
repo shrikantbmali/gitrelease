@@ -22,6 +22,7 @@ namespace gitrelease.cli
             var skipTagOption = new Option<bool>(new[] { "--skip-tag", "-t" }, () => false, "Specify if tag creation should skipped");
             var preReleaseOption = new Option<string>(new[] { "--pre-release-tag", "-p" }, "Any pre release tap you'd like to add to the version.");
             var appendStringOption = new Option<string>(new[] { "--append-string" }, () => string.Empty, "Specify the string you'd like to append at the end. It will only be appended in Incremental changelog type.");
+            var skipSignOption = new Option<bool>(new[] { "--skip-sign" }, () => false, "Indicates to skip signing of the commit.");
             var releaseTypeArgument = new Argument<ReleaseType>("release-type", "Specify the release type") {Arity = ArgumentArity.ExactlyOne};
             var versionArgument = new Argument<string>("version", "Specify the release version") {Arity = ArgumentArity.ZeroOrOne};
             var versionOption = new Option<string>(new[] { "--version", "-v" }, () => GitVersion.InitDefault.ToVersionString(), "Select in case the project is not a xamarin project.");
@@ -40,7 +41,8 @@ namespace gitrelease.cli
                 int changelogCharacterLimit,
                 string changelogFileName,
                 ChangeLogType changelogType,
-                string appendString) => ReleaseSequence(
+                string appendString,
+                bool skipSign) => ReleaseSequence(
                     root,
                     releaseType,
                     version,
@@ -52,7 +54,8 @@ namespace gitrelease.cli
                     changelogCharacterLimit,
                     changelogFileName,
                     changelogType,
-                    appendString),
+                    appendString,
+                    skipSign),
                     rootOption,
                     releaseTypeArgument,
                     versionArgument,
@@ -64,7 +67,8 @@ namespace gitrelease.cli
                     changelogCharacterLimitOption,
                     changelogFilenameOption,
                     changelogTypeOption,
-                    appendStringOption);
+                    appendStringOption,
+                    skipSignOption);
 
 
             rootCommand.AddOption(rootOption);
@@ -77,6 +81,7 @@ namespace gitrelease.cli
             rootCommand.AddOption(skipTagOption);
             rootCommand.AddOption(preReleaseOption);
             rootCommand.AddOption(appendStringOption);
+            rootCommand.AddOption(skipSignOption);
             rootCommand.AddArgument(releaseTypeArgument);
             rootCommand.AddArgument(versionArgument);
             
@@ -112,7 +117,8 @@ namespace gitrelease.cli
             int changelogCharacterLimit,
             string changelogFileName,
             ChangeLogType changelogType,
-            string appendString)
+            string appendString,
+            bool skipSign)
         {
             root = FindDirectory(root);
             if (string.IsNullOrEmpty(root))
@@ -148,7 +154,8 @@ namespace gitrelease.cli
                 ChangelogCharacterLimit = changelogCharacterLimit,
                 ChangelogFileName = changelogFileName,
                 ChangeLogType = changelogType,
-                AppendValue = appendString
+                AppendValue = appendString,
+                SkipSign = skipSign
             });
 
             DumpMessage(releaseManagerFlags);

@@ -6,7 +6,8 @@
       //"commandLineArgs": "init -r C:\\Users\\ShrikantMali\\sandbox\\github\\shrikantbmali\\app-test"
       //"commandLineArgs": "get-version -r C:\\Users\\ShrikantMali\\sandbox\\github\\shrikantbmali\\app-test"
       //"commandLineArgs": "gv -r C:\\Users\\ShrikantMali\\sandbox\\github\\shrikantbmali\\app-test"
-      "commandLineArgs": "-r C:\\Users\\ShrikantMali\\sandbox\\github\\shrikantbmali\\app-test -d -i -c -t BuildNumber --changelog-character-limit 4999 --changelog-filename release_note.md -i --append-string asdfasdf"
+      //"commandLineArgs": "-r C:\\Users\\ShrikantMali\\sandbox\\github\\shrikantbmali\\app-test -d -i -c -t BuildNumber --changelog-character-limit 4999 --changelog-filename release_note.md -i --append-string asdfasdf"
+      "commandLineArgs": "-r C:\\Users\\ShrikantMali\\sandbox\\github\\shrikantbmali\\app-test BuildNumber -c --skip-sign -t"
     },
     "WSL 2": {
       "commandName": "WSL2",

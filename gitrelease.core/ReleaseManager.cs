@@ -200,9 +200,21 @@ namespace gitrelease.core
             {
                 _messenger.Info("Creating commit...");
                 releaseFlag = AmendLastCommit(repo, nextVersion, configFile);
+
+                if (!releaseChoices.SkipSign)
+                    releaseFlag = SignCommit();
             }
 
             return (rollbackInfo, releaseFlag);
+        }
+
+        private ReleaseManagerFlags SignCommit()
+        {
+            var (message, isError) = CommandExecutor.ExecuteCommand("git", "commit --amend --no-edit -S", _rootDir);
+
+            if(isError) _messenger.Error(new Exception(message));
+
+            return isError ? ReleaseManagerFlags.NPMInitFailed : ReleaseManagerFlags.Ok;
         }
 
         private GitVersion DetermineNextVersion(IRepository repo, ReleaseChoices releaseChoices)
@@ -676,6 +688,7 @@ namespace gitrelease.core
 
             return isError ? ReleaseManagerFlags.NPMInitFailed : ReleaseManagerFlags.Ok;
         }
+
         private ReleaseManagerFlags NpmInstall()
         {
             var (_, isError) = CommandExecutor.ExecuteCommand("npm", "install", _rootDir);

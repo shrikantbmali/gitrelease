@@ -1,3 +1,9 @@
+#### 1.27.0.148 (2022-05-11)
+
+##### Other Changes
+
+* **GPGSignSupport:**  add ability to sing the commit with gpg signature ([f58d7ae6](https://github.com/shrknt35/release/commit/f58d7ae67e0da7213085033f608bdbc9468e0a6b))
+
 #### 1.26.2.146 (2022-03-28)
 
 #### 1.26.1.145 (2022-03-28)

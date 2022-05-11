@@ -1,3 +1,9 @@
+#### 1.27.1.150 (2022-05-11)
+
+##### Bug Fixes
+
+* **Message:**  add a log whem signing a commit ([4d840a95](https://github.com/shrknt35/release/commit/4d840a957518290e25da8cd17bea9a957c6e89b2))
+
 #### 1.27.0.148 (2022-05-11)
 
 ##### Other Changes

@@ -179,7 +179,7 @@ namespace gitrelease.core
             if (!releaseChoices.DryRun && !releaseChoices.SkipTag)
             {
                 _messenger.Info($"Creating tag name {nextVersion.ToVersionStringV()}");
-                releaseFlag = CreateTag(repo, nextVersion);
+                releaseFlag = CreateTag(repo, nextVersion, releaseChoices.SkipSign);
 
                 if (releaseFlag == ReleaseManagerFlags.Ok)
                 {
@@ -217,7 +217,7 @@ namespace gitrelease.core
             if(isError)
                 _messenger.Error(new Exception(message));
 
-            return isError ? ReleaseManagerFlags.NPMInitFailed : ReleaseManagerFlags.Ok;
+            return isError ? ReleaseManagerFlags.CommitSignFailed : ReleaseManagerFlags.Ok;
         }
 
         private GitVersion DetermineNextVersion(IRepository repo, ReleaseChoices releaseChoices)
@@ -346,12 +346,19 @@ namespace gitrelease.core
             return ReleaseManagerFlags.Unknown;
         }
 
-        private ReleaseManagerFlags CreateTag(IRepository repo, GitVersion version)
+        private ReleaseManagerFlags CreateTag(IRepository repo, GitVersion version, bool skipSign)
         {
             try
             {
-                repo.ApplyTag(version.ToVersionStringV());
-                return ReleaseManagerFlags.Ok;
+                var singTag = skipSign ? string.Empty : $"-s -m {version.ToVersionStringV()}";
+                var (message, isError) = CommandExecutor.ExecuteCommand("git", $"tag {singTag} {version.ToVersionStringV()}", _rootDir);
+
+                if (!isError)
+                    return ReleaseManagerFlags.Ok;
+
+                _messenger.Error(new Exception(message));
+                return ReleaseManagerFlags.TagCreationFailed;
+
             }
             catch (Exception e)
             {

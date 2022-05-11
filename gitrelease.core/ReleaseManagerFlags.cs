@@ -22,6 +22,7 @@
         NBGVInitFailed = -27,
         NBGVUninstallationFailed = -28,
         ChangelogGeneratorInstallFailed = -29,
-        ConfigFileCreationFailed = -30
+        ConfigFileCreationFailed = -30,
+        CommitSignFailed = -31
     }
 }

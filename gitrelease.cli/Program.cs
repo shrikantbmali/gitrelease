@@ -22,7 +22,7 @@ namespace gitrelease.cli
             var skipTagOption = new Option<bool>(new[] { "--skip-tag", "-t" }, () => false, "Specify if tag creation should skipped");
             var preReleaseOption = new Option<string>(new[] { "--pre-release-tag", "-p" }, "Any pre release tap you'd like to add to the version.");
             var appendStringOption = new Option<string>(new[] { "--append-string" }, () => string.Empty, "Specify the string you'd like to append at the end. It will only be appended in Incremental changelog type.");
-            var skipSignOption = new Option<bool>(new[] { "--skip-sign" }, () => false, "Indicates to skip signing of the commit.");
+            var skipSignOption = new Option<bool>(new[] { "--skip-sign", "-s" }, () => false, "Indicates to skip signing of the commit.");
             var releaseTypeArgument = new Argument<ReleaseType>("release-type", "Specify the release type") {Arity = ArgumentArity.ExactlyOne};
             var versionArgument = new Argument<string>("version", "Specify the release version") {Arity = ArgumentArity.ZeroOrOne};
             var versionOption = new Option<string>(new[] { "--version", "-v" }, () => GitVersion.InitDefault.ToVersionString(), "Select in case the project is not a xamarin project.");

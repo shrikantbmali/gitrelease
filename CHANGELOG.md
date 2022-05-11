@@ -1,3 +1,9 @@
+#### 1.28.0.152 (2022-05-11)
+
+##### New Features
+
+* **TagSigning:**  add ability to sing the tags ([e749431b](https://github.com/shrknt35/release/commit/e749431b7e507d30f2f0abb2e02db7454703136b))
+
 #### 1.27.1.150 (2022-05-11)
 
 ##### Bug Fixes

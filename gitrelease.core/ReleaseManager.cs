@@ -210,9 +210,12 @@ namespace gitrelease.core
 
         private ReleaseManagerFlags SignCommit()
         {
+            _messenger.Info("Signing Commit...");
+
             var (message, isError) = CommandExecutor.ExecuteCommand("git", "commit --amend --no-edit -S", _rootDir);
 
-            if(isError) _messenger.Error(new Exception(message));
+            if(isError)
+                _messenger.Error(new Exception(message));
 
             return isError ? ReleaseManagerFlags.NPMInitFailed : ReleaseManagerFlags.Ok;
         }

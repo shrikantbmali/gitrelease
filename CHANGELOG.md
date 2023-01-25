@@ -1,3 +1,9 @@
+#### 1.29.1.156 (2023-01-25)
+
+##### Bug Fixes
+
+* **Maui:**  platform lookup should consider unavailability of properties folder ([9bd322a8](https://github.com/shrknt35/release/commit/9bd322a8554e3d737ca962703df878dcda1ab27a))
+
 #### 1.29.0.154 (2023-01-25)
 
 #### 1.28.0.152 (2022-05-11)

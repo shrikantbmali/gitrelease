@@ -481,8 +481,14 @@ namespace gitrelease.core
                     case "droid":
                         ps.Add(platform.Name, new DroidPlatform(absolutePath));
                         break;
+                    case "macos":
+                        ps.Add(platform.Name, new MacOSPlatform(absolutePath));
+                        break;
                     case "uwp":
                         ps.Add(platform.Name, new UWPPlatform(absolutePath));
+                        break;
+                    case "winui":
+                        ps.Add(platform.Name, new WinUIPlatform(absolutePath));
                         break;
                     default:
                         ps.Add("null", new Invalid(absolutePath));
@@ -634,7 +640,7 @@ namespace gitrelease.core
         {
             IEnumerable<Platform> GetPlatform()
             {
-                if (AskUserYesOrNo("Add version support in Xamarin iOS"))
+                if (AskUserYesOrNo("Add version support in iOS"))
                 {
                     yield return new Platform
                     {
@@ -643,7 +649,7 @@ namespace gitrelease.core
                     };
                 }
 
-                if (AskUserYesOrNo("Add version support in Xamarin Droid"))
+                if (AskUserYesOrNo("Add version support in Droid"))
                 {
                     yield return new Platform
                     {
@@ -652,12 +658,28 @@ namespace gitrelease.core
                     };
                 }
 
-                if (AskUserYesOrNo("Add version support in Xamarin UWP"))
+                if (AskUserYesOrNo("Add version support in UWP"))
                 {
                     yield return new Platform
                     {
                         Name = "uwp",
                         Path = _messenger.AskUser("Specify relative folder path where UWP .csproj file is.", path => UWPPlatform.IsValid(path, _rootDir))
+                    };
+                }
+                if (AskUserYesOrNo("Add version support in MacOS"))
+                {
+                    yield return new Platform
+                    {
+                        Name = "macos",
+                        Path = _messenger.AskUser("Specify relative folder path where macos .csproj file is.", path => MacOSPlatform.IsValid(path, _rootDir))
+                    };
+                }
+                if (AskUserYesOrNo("Add version support in WinUI"))
+                {
+                    yield return new Platform
+                    {
+                        Name = "winui",
+                        Path = _messenger.AskUser("Specify relative folder path where macos .csproj file is.", path => WinUIPlatform.IsValid(path, _rootDir))
                     };
                 }
             }

@@ -5,6 +5,8 @@
         IOS,
         Droid,
         UWP,
+        WinUi,
+        MacOs,
         DLL,
         INVALID
     }

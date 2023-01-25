@@ -6,11 +6,11 @@ namespace gitrelease.core.platforms
 {
     internal class IOSPlatform : IPlatform
     {
-        private const string PlistFile = "Info.plist";
+        protected const string PlistFile = "Info.plist";
 
         private string path;
 
-        public PlatformType Type { get; } = PlatformType.IOS;
+        public virtual PlatformType Type { get; } = PlatformType.IOS;
 
         public IOSPlatform(string path)
         {

@@ -11,7 +11,7 @@ namespace gitrelease.core.platforms
     {
         private string path;
 
-        public PlatformType Type { get; } = PlatformType.UWP;
+        public virtual PlatformType Type { get; } = PlatformType.UWP;
         
         public UWPPlatform(string path)
         {
@@ -114,6 +114,20 @@ namespace gitrelease.core.platforms
         public static bool IsValid(string path, string root)
         {
             return File.Exists(Path.Combine(Path.IsPathRooted(path) ? path : Path.Combine(root, path), "Package.appxmanifest"));
+        }
+    }
+
+    class WinUIPlatform : UWPPlatform
+    {
+        public override PlatformType Type { get; } = PlatformType.WinUi;
+
+        public WinUIPlatform(string path) : base(path)
+        {
+        }
+
+        public static bool IsValid(string path, string root)
+        {
+            return UWPPlatform.IsValid(path, root);
         }
     }
 
